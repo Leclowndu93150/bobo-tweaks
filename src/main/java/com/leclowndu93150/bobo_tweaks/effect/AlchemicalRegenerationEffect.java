@@ -12,6 +12,7 @@ import net.minecraft.world.entity.ai.attributes.AttributeMap;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraftforge.fml.ModList;
 
+import java.util.Objects;
 import java.util.UUID;
 
 public class AlchemicalRegenerationEffect extends MobEffect {
@@ -33,10 +34,10 @@ public class AlchemicalRegenerationEffect extends MobEffect {
             AttributeInstance alchemicalBoostInstance = entity.getAttribute(ModAttributes.ALCHEMICAL_BOOST.get());
             double alchemicalBoost = alchemicalBoostInstance != null ? alchemicalBoostInstance.getValue() : 0.0D;
             
-            // Calculate heal amount: flat heal + (scaling factor * alchemical boost)
-            double flatHeal = getFlatHeal(amplifier);
-            double scalingBonus = getScalingFactor(amplifier) * alchemicalBoost;
-            float totalHeal = (float) (flatHeal + scalingBonus);
+            // Calculate heal amount: same formula as restore effect
+            float flatHeal = getFlatHeal(amplifier);
+            float scalingBonus = getScalingFactor(amplifier) * (float) alchemicalBoost;
+            float totalHeal = flatHeal + scalingBonus;
             
             entity.heal(totalHeal);
             tickCounter = 0;
@@ -51,7 +52,7 @@ public class AlchemicalRegenerationEffect extends MobEffect {
         if (ModList.get().isLoaded("attributeslib")) {
             try {
                 var critDamageAttr = entity.getAttribute(
-                        BuiltInRegistries.ATTRIBUTE.get(new ResourceLocation("attributeslib", "crit_damage"))
+                        Objects.requireNonNull(BuiltInRegistries.ATTRIBUTE.get(new ResourceLocation("attributeslib", "crit_damage")))
                 );
                 
                 if (critDamageAttr != null) {
@@ -75,7 +76,7 @@ public class AlchemicalRegenerationEffect extends MobEffect {
         if (ModList.get().isLoaded("attributeslib")) {
             try {
                 var critDamageAttr = entity.getAttribute(
-                        BuiltInRegistries.ATTRIBUTE.get(new ResourceLocation("attributeslib", "crit_damage"))
+                        Objects.requireNonNull(BuiltInRegistries.ATTRIBUTE.get(new ResourceLocation("attributeslib", "crit_damage")))
                 );
                 
                 if (critDamageAttr != null) {
@@ -89,15 +90,15 @@ public class AlchemicalRegenerationEffect extends MobEffect {
 
     @Override
     public boolean isDurationEffectTick(int duration, int amplifier) {
-        return true; // Tick every game tick to handle the 0.4s timing
+        return true;
     }
     
-    private double getFlatHeal(int amplifier) {
-        return ModConfig.COMMON.regenerationFlatHeal.get() * (amplifier + 1);
+    private float getFlatHeal(int amplifier) {
+        return (float) (ModConfig.COMMON.regenerationFlatHeal.get() * (amplifier + 1));
     }
     
-    private double getScalingFactor(int amplifier) {
-        return ModConfig.COMMON.regenerationScalingFactor.get() * (amplifier + 1);
+    private float getScalingFactor(int amplifier) {
+        return (float) (ModConfig.COMMON.regenerationScalingFactor.get() * (amplifier + 1));
     }
     
     private double getCritDamageBoost() {

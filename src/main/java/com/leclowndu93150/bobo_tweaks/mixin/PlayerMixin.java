@@ -30,6 +30,9 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerJumpAcce
     
     @Unique
     private boolean boboTweaks$wasOnGround = true;
+    
+    @Unique
+    private boolean boboTweaks$jumpKeyReleasedAfterLanding = false;
 
     protected PlayerMixin(EntityType<? extends LivingEntity> entityType, Level level) {
         super(entityType, level);
@@ -37,6 +40,10 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerJumpAcce
 
     @Override
     public void boboTweaks$setJumpKeyPressed(boolean pressed) {
+        if (!pressed && this.onGround()) {
+            this.boboTweaks$jumpKeyReleasedAfterLanding = true;
+        }
+        
         this.boboTweaks$jumpKeyPressed = pressed;
     }
 
@@ -80,12 +87,14 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerJumpAcce
         
         if (currentlyOnGround && !boboTweaks$wasOnGround) {
             boboTweaks$jumpsUsed = 0;
-            boboTweaks$jumpKeyPressed = false;
+            boboTweaks$jumpKeyReleasedAfterLanding = false;
         }
-        
+
         if (!currentlyOnGround && boboTweaks$jumpKeyPressed && boboTweaks$canMultiJump()) {
-            performAirJump(player);
-            boboTweaks$jumpKeyPressed = false;
+            if (boboTweaks$jumpKeyReleasedAfterLanding || !boboTweaks$wasOnGround) {
+                performAirJump(player);
+                boboTweaks$jumpKeyPressed = false;
+            }
         }
         
         boboTweaks$wasOnGround = currentlyOnGround;

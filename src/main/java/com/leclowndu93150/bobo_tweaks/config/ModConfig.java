@@ -28,6 +28,7 @@ public class ModConfig {
         public final ForgeConfigSpec.DoubleValue lifeDrainInterval;
         public final ForgeConfigSpec.DoubleValue lifeDrainPercentage;
         public final ForgeConfigSpec.DoubleValue regenInterval;
+        public final ForgeConfigSpec.DoubleValue regenerationPercentage;
         public final ForgeConfigSpec.DoubleValue temperatureInterval;
         public final ForgeConfigSpec.DoubleValue hyperthermiaDebuff;
         public final ForgeConfigSpec.DoubleValue hypothermiaDebuff;
@@ -67,6 +68,9 @@ public class ModConfig {
             regenInterval = builder
                 .comment("Time interval in seconds between regeneration heal ticks")
                 .defineInRange("interval", 5.0, 1.0, 60.0);
+            regenerationPercentage = builder
+                .comment("Percentage of max health healed per regeneration level per tick (0.05 = 5%)")
+                .defineInRange("percentage", 0.05, 0.01, 0.5);
             builder.pop();
             
             builder.push("temperature");

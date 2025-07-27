@@ -79,8 +79,8 @@ public class AttributeTickHandler {
             
             int intervalTicks = (int) (ModConfig.COMMON.regenInterval.get() * 20);
             if (timer >= intervalTicks) {
-                double regenPercentage = regenAttr.getValue();
-                float healAmount = (float) (player.getMaxHealth() * regenPercentage);
+                double regenLevel = regenAttr.getValue();
+                float healAmount = (float) (player.getMaxHealth() * regenLevel * ModConfig.COMMON.regenerationPercentage.get());
                 
                 player.heal(healAmount);
                 
@@ -262,7 +262,7 @@ public class AttributeTickHandler {
             try {
                 // Apply crit rate reduction
                 var critRateAttr = player.getAttribute(
-                        Objects.requireNonNull(BuiltInRegistries.ATTRIBUTE.get(new ResourceLocation("attributeslib", "crit_rate")))
+                        Objects.requireNonNull(BuiltInRegistries.ATTRIBUTE.get(new ResourceLocation("attributeslib", "crit_chance")))
                 );
                 
                 if (critRateAttr != null) {
@@ -296,7 +296,7 @@ public class AttributeTickHandler {
             try {
                 // Remove crit rate reduction
                 var critRateAttr = player.getAttribute(
-                        Objects.requireNonNull(BuiltInRegistries.ATTRIBUTE.get(new ResourceLocation("attributeslib", "crit_rate")))
+                        Objects.requireNonNull(BuiltInRegistries.ATTRIBUTE.get(new ResourceLocation("attributeslib", "crit_chance")))
                 );
                 
                 if (critRateAttr != null) {

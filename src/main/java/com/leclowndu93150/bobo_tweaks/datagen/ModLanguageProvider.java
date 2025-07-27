@@ -36,6 +36,7 @@ public class ModLanguageProvider extends LanguageProvider {
         // Regeneration
         add("config.bobo_tweaks.regeneration", "Regeneration");
         add("config.bobo_tweaks.regeneration.interval", "Heal Interval (seconds)");
+        add("config.bobo_tweaks.regeneration.percentage", "Percentage of Max Health Healed per Level per Tick");
         
         // Temperature
         add("config.bobo_tweaks.temperature", "Temperature Effects");
@@ -66,6 +67,11 @@ public class ModLanguageProvider extends LanguageProvider {
         add("config.bobo_tweaks.alchemical_restore", "Alchemical Restore");
         add("config.bobo_tweaks.alchemical_restore.flat_heal", "Base Heal Amount");
         add("config.bobo_tweaks.alchemical_restore.scaling_factor", "Alchemical Boost Scaling");
+        
+        add("config.bobo_tweaks.alchemical_regeneration", "Alchemical Regeneration");
+        add("config.bobo_tweaks.alchemical_regeneration.flat_heal", "Base Heal Amount per Level every 0.4s");
+        add("config.bobo_tweaks.alchemical_regeneration.scaling_factor", "Alchemical Boost Scaling per Level every 0.4s");
+        add("config.bobo_tweaks.alchemical_regeneration.crit_damage_boost", "Flat Critical Damage Boost while Active");
         
         add("config.bobo_tweaks.alchemical_shielding", "Alchemical Shielding");
         add("config.bobo_tweaks.alchemical_shielding.flat_shield", "Base Shield Amount");
