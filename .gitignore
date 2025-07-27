@@ -106,6 +106,8 @@ build/
 # Ignore Gradle GUI config
 gradle-app.setting
 
+help for claude
+
 # Cache of project
 .gradletasknamecache
 

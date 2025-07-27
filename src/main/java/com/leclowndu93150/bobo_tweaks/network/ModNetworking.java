@@ -1,6 +1,9 @@
 package com.leclowndu93150.bobo_tweaks.network;
 
 import com.leclowndu93150.bobo_tweaks.BoboTweaks;
+import com.leclowndu93150.bobo_tweaks.network.packet.AutoBowReleasePacket;
+import com.leclowndu93150.bobo_tweaks.network.packet.AutoBowTogglePacket;
+import com.leclowndu93150.bobo_tweaks.network.packet.AutoCrossbowReleasePacket;
 import com.leclowndu93150.bobo_tweaks.network.packet.ClientboundJumpPacket;
 import com.leclowndu93150.bobo_tweaks.network.packet.JumpPacket;
 import com.leclowndu93150.bobo_tweaks.network.packet.SyncJumpDataPacket;
@@ -46,6 +49,25 @@ public class ModNetworking {
                 .decoder(SyncJumpDataPacket::new)
                 .encoder(SyncJumpDataPacket::toBytes)
                 .consumerMainThread(SyncJumpDataPacket::handle)
+                .add();
+        
+        // Register auto bow packets
+        net.messageBuilder(AutoBowTogglePacket.class, id(), NetworkDirection.PLAY_TO_SERVER)
+                .decoder(AutoBowTogglePacket::new)
+                .encoder(AutoBowTogglePacket::toBytes)
+                .consumerMainThread(AutoBowTogglePacket::handle)
+                .add();
+                
+        net.messageBuilder(AutoBowReleasePacket.class, id(), NetworkDirection.PLAY_TO_SERVER)
+                .decoder(AutoBowReleasePacket::new)
+                .encoder(AutoBowReleasePacket::toBytes)
+                .consumerMainThread(AutoBowReleasePacket::handle)
+                .add();
+                
+        net.messageBuilder(AutoCrossbowReleasePacket.class, id(), NetworkDirection.PLAY_TO_SERVER)
+                .decoder(AutoCrossbowReleasePacket::new)
+                .encoder(AutoCrossbowReleasePacket::toBytes)
+                .consumerMainThread(AutoCrossbowReleasePacket::handle)
                 .add();
     }
 

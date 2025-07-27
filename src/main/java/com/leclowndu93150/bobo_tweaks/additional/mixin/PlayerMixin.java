@@ -1,4 +1,4 @@
-package com.leclowndu93150.bobo_tweaks.mixin;
+package com.leclowndu93150.bobo_tweaks.additional.mixin;
 
 import com.leclowndu93150.bobo_tweaks.config.ModConfig;
 import com.leclowndu93150.bobo_tweaks.network.ModNetworking;

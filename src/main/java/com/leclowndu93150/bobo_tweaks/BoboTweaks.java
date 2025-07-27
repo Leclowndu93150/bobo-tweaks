@@ -1,5 +1,6 @@
 package com.leclowndu93150.bobo_tweaks;
 
+import com.leclowndu93150.bobo_tweaks.additional.autobow.AutoBowRegistration;
 import com.leclowndu93150.bobo_tweaks.config.ModConfig;
 import com.leclowndu93150.bobo_tweaks.event.ModEventHandler;
 import com.leclowndu93150.bobo_tweaks.network.ModNetworking;
@@ -7,6 +8,10 @@ import com.leclowndu93150.bobo_tweaks.registry.ModAttributes;
 import com.leclowndu93150.bobo_tweaks.registry.ModCreativeTabs;
 import com.leclowndu93150.bobo_tweaks.registry.ModPotions;
 import com.mojang.logging.LogUtils;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.BowItem;
+import net.minecraft.world.item.CrossbowItem;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.ModLoadingContext;
@@ -34,6 +39,8 @@ public class BoboTweaks {
 
         ModLoadingContext.get().registerConfig(Type.COMMON, ModConfig.COMMON_SPEC);
         ModLoadingContext.get().registerConfig(Type.CLIENT, ModConfig.CLIENT_SPEC);
+
+        AutoBowRegistration.init();
 
         modEventBus.addListener(this::commonSetup);
     }

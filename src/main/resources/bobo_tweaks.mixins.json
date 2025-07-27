@@ -1,13 +1,15 @@
 {
   "required": true,
   "minVersion": "0.8",
-  "package": "com.leclowndu93150.bobo_tweaks.mixin",
+  "package": "com.leclowndu93150.bobo_tweaks.additional.mixin",
   "compatibilityLevel": "JAVA_8",
   "refmap": "bobo_tweaks.refmap.json",
   "mixins": [
     "PlayerMixin"
   ],
   "client": [
+    "BowItemMixin",
+    "CrossbowItemMixin"
   ],
   "injectors": {
     "defaultRequire": 1

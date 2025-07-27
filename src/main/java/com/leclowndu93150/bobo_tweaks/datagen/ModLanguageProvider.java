@@ -25,6 +25,8 @@ public class ModLanguageProvider extends LanguageProvider {
         addPotionEffects();
 
         addAttributes();
+        
+        addAutoBowFeature();
     }
     
     private void addConfig() {
@@ -136,5 +138,15 @@ public class ModLanguageProvider extends LanguageProvider {
         add("death.attack.life_drain", "%1$s withered away");
         add("death.attack.hyperthermia", "%1$s succumbed to extreme heat");
         add("death.attack.hypothermia", "%1$s froze to death");
+    }
+    
+    private void addAutoBowFeature() {
+        // Key bindings
+        add("key.categories.bobo_tweaks", "Bobo Tweaks");
+        add("key.bobo_tweaks.auto_bow_toggle", "Toggle Auto Bow/Crossbow");
+        
+        // Status messages
+        add("msg.bobo_tweaks.auto_bow.enabled", "Auto Bow/Crossbow: ON");
+        add("msg.bobo_tweaks.auto_bow.disabled", "Auto Bow/Crossbow: OFF");
     }
 }

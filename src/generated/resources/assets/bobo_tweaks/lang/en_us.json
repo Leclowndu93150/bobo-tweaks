@@ -62,6 +62,10 @@
   "effect.bobo_tweaks.mystical_shield": "Mystical Shield",
   "effect.bobo_tweaks.the_warden": "The Warden",
   "itemGroup.bobo_tweaks.bobo_tab": "Bobo Tweaks",
+  "key.bobo_tweaks.auto_bow_toggle": "Toggle Auto Bow/Crossbow",
+  "key.categories.bobo_tweaks": "Bobo Tweaks",
   "mod.bobo_tweaks.name": "Bobo Tweaks",
+  "msg.bobo_tweaks.auto_bow.disabled": "Auto Bow/Crossbow: OFF",
+  "msg.bobo_tweaks.auto_bow.enabled": "Auto Bow/Crossbow: ON",
   "tooltip.bobo_tweaks.jump_count": "Allows %s air jumps"
 }
