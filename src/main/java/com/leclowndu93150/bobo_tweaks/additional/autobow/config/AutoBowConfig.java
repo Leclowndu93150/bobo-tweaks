@@ -14,7 +14,6 @@ public class AutoBowConfig {
     
     public static class AutoBowConfigValues {
         public final ForgeConfigSpec.BooleanValue autoBowEnabled;
-        public final ForgeConfigSpec.IntValue bowDrawTime;
         public final ForgeConfigSpec.IntValue crossbowChargeTime;
         
         AutoBowConfigValues(ForgeConfigSpec.Builder builder) {
@@ -23,10 +22,6 @@ public class AutoBowConfig {
             autoBowEnabled = builder
                 .comment("Enable auto bow/crossbow feature (default: false)")
                 .define("auto_bow_enabled", false);
-                
-            bowDrawTime = builder
-                .comment("Minimum draw time for bow auto-fire in ticks (default: 20)")
-                .defineInRange("bow_draw_time", 20, 5, 60);
                 
             crossbowChargeTime = builder
                 .comment("Charge time for crossbow auto-reload in ticks (default: 25)")

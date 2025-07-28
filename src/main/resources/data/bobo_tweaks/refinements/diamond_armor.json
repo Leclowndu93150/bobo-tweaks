@@ -1,0 +1,31 @@
+{
+  "items": [
+    "minecraft:diamond_chestplate",
+    "minecraft:diamond_helmet",
+    "minecraft:diamond_leggings",
+    "minecraft:diamond_boots"
+  ],
+  "upgrade_material": {
+    "item": "minecraft:diamond",
+    "amount": 3
+  },
+  "max_refinements": 30,
+  "cost_mult": 1.5,
+  "attribute_modifications_per_upgrade": [
+    {
+      "name": "minecraft:generic.armor",
+      "amount": 1.0,
+      "operation": "add"
+    },
+    {
+      "name": "minecraft:generic.max_health",
+      "amount": 0.05,
+      "operation": "multiply_total"
+    },
+    {
+      "name": "minecraft:generic.movement_speed",
+      "amount": -0.03,
+      "operation": "multiply_total"
+    }
+  ]
+}

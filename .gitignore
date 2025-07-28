@@ -107,7 +107,8 @@ build/
 gradle-app.setting
 
 help for claude
-
+.claude
+run-data
 # Cache of project
 .gradletasknamecache
 

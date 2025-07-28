@@ -80,7 +80,7 @@ public class AttributeTickHandler {
             int intervalTicks = (int) (ModConfig.COMMON.regenInterval.get() * 20);
             if (timer >= intervalTicks) {
                 double regenLevel = regenAttr.getValue();
-                float healAmount = (float) (player.getMaxHealth() * regenLevel * ModConfig.COMMON.regenerationPercentage.get());
+                float healAmount = (float) (regenLevel * ModConfig.COMMON.regenerationHealAmount.get());
                 
                 player.heal(healAmount);
                 

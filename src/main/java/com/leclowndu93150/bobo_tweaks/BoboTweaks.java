@@ -10,6 +10,7 @@ import com.leclowndu93150.bobo_tweaks.registry.ModPotions;
 import com.mojang.logging.LogUtils;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AnvilMenu;
 import net.minecraft.world.item.BowItem;
 import net.minecraft.world.item.CrossbowItem;
 import net.minecraftforge.common.MinecraftForge;
@@ -24,7 +25,7 @@ import org.slf4j.Logger;
 @Mod(BoboTweaks.MODID)
 public class BoboTweaks {
     public static final String MODID = "bobo_tweaks";
-    private static final Logger LOGGER = LogUtils.getLogger();
+    public static final Logger LOGGER = LogUtils.getLogger();
 
     public BoboTweaks() {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();

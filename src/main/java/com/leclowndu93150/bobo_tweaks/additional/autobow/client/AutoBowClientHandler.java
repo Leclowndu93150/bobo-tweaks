@@ -19,7 +19,6 @@ public class AutoBowClientHandler {
     private static InteractionHand activeHand = null;
     private static ItemType currentItemType = ItemType.NONE;
     private static int bowDrawTicks = 0;
-    private static int bowMaxDrawTime = 20; // Standard bow draw time
     private static int crossbowChargeTicks = 0;
     private static int crossbowMaxChargeTime = 25; // Standard crossbow charge time
     private static boolean crossbowCharging = false;
@@ -84,7 +83,6 @@ public class AutoBowClientHandler {
         activeHand = hand;
         currentItemType = ItemType.BOW;
         bowDrawTicks = 0;
-        bowMaxDrawTime = AutoBowConfig.VALUES.bowDrawTime.get();
     }
     
     public static void onBowShot(Player player, ItemStack stack, InteractionHand hand) {
@@ -110,9 +108,19 @@ public class AutoBowClientHandler {
         
         bowDrawTicks++;
         
-        if (bowDrawTicks >= bowMaxDrawTime) {
-            ModNetworking.sendToServer(new AutoBowReleasePacket(hand, bowDrawTicks));
-            bowDrawTicks = 0;
+        // For vanilla bows, max power is at 20 ticks (1 second)
+        // For modded bows, let them charge fully to respect custom draw speeds
+        int maxDrawTime = 20;
+        if (stack.getItem() instanceof BowItem bowItem) {
+            // Some modded bows might have different charge times
+            // We use 20 as the standard max charge time for full power
+            float currentPower = BowItem.getPowerForTime(bowDrawTicks);
+            
+            // Check if we've reached max power (1.0)
+            if (currentPower >= 1.0f || bowDrawTicks >= maxDrawTime) {
+                ModNetworking.sendToServer(new AutoBowReleasePacket(hand, bowDrawTicks));
+                bowDrawTicks = 0;
+            }
         }
     }
     
@@ -134,7 +142,7 @@ public class AutoBowClientHandler {
         if (!CrossbowItem.isCharged(stack)) {
             crossbowCharging = true;
             crossbowChargeTicks = 0;
-            crossbowMaxChargeTime = CrossbowItem.getChargeDuration(stack) + AutoBowConfig.VALUES.bowDrawTime.get();
+            crossbowMaxChargeTime = CrossbowItem.getChargeDuration(stack);
         } else {
             if (isRightClickHeld) {
                 Minecraft.getInstance().execute(() -> {
