@@ -2,12 +2,15 @@ package com.leclowndu93150.bobo_tweaks.event;
 
 import com.leclowndu93150.bobo_tweaks.BoboTweaks;
 import com.leclowndu93150.bobo_tweaks.registry.ModAttributes;
+import com.leclowndu93150.bobo_tweaks.refinement.RefinementManager;
 import com.leclowndu93150.bobo_tweaks.util.AttributeTickHandler;
+import net.minecraft.server.packs.resources.ResourceManagerReloadListener;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.AddReloadListenerEvent;
 import net.minecraftforge.event.entity.EntityAttributeModificationEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -53,5 +56,10 @@ public class ModEventHandler {
                 event.setAmount(originalDamage * amplifier);
             }
         }
+    }
+    
+    @SubscribeEvent
+    public void onAddReloadListener(AddReloadListenerEvent event) {
+        event.addListener(new RefinementManager());
     }
 }

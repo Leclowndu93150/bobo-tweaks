@@ -27,6 +27,8 @@ public class ModLanguageProvider extends LanguageProvider {
         addAttributes();
         
         addAutoBowFeature();
+        
+        addRefinementSystem();
     }
     
     private void addConfig() {
@@ -148,5 +150,13 @@ public class ModLanguageProvider extends LanguageProvider {
         // Status messages
         add("msg.bobo_tweaks.auto_bow.enabled", "Auto Bow/Crossbow: ON");
         add("msg.bobo_tweaks.auto_bow.disabled", "Auto Bow/Crossbow: OFF");
+    }
+    
+    private void addRefinementSystem() {
+        // Refinement tooltip
+        add("tooltip.bobo_tweaks.refined", "Refined (%s / %s)");
+        
+        // Example refinement recipe
+        add("refinement.bobo_tweaks.diamond_armor", "Diamond Armor Refinement");
     }
 }
