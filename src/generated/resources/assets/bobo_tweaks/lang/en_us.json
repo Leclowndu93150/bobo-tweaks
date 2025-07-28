@@ -67,5 +67,7 @@
   "mod.bobo_tweaks.name": "Bobo Tweaks",
   "msg.bobo_tweaks.auto_bow.disabled": "Auto Bow/Crossbow: OFF",
   "msg.bobo_tweaks.auto_bow.enabled": "Auto Bow/Crossbow: ON",
-  "tooltip.bobo_tweaks.jump_count": "Allows %s air jumps"
+  "refinement.bobo_tweaks.diamond_armor": "Diamond Armor Refinement",
+  "tooltip.bobo_tweaks.jump_count": "Allows %s air jumps",
+  "tooltip.bobo_tweaks.refined": "Refined (%s / %s)"
 }
