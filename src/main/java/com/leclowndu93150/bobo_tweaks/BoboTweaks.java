@@ -1,6 +1,7 @@
 package com.leclowndu93150.bobo_tweaks;
 
 import com.leclowndu93150.bobo_tweaks.additional.autobow.AutoBowRegistration;
+import com.leclowndu93150.bobo_tweaks.additional.armorpreservation.ArmorPreservationRegistration;
 import com.leclowndu93150.bobo_tweaks.config.ModConfig;
 import com.leclowndu93150.bobo_tweaks.event.ModEventHandler;
 import com.leclowndu93150.bobo_tweaks.network.ModNetworking;
@@ -42,6 +43,7 @@ public class BoboTweaks {
         ModLoadingContext.get().registerConfig(Type.CLIENT, ModConfig.CLIENT_SPEC);
 
         AutoBowRegistration.init();
+        ArmorPreservationRegistration.init();
 
         modEventBus.addListener(this::commonSetup);
     }
