@@ -2,6 +2,7 @@ package com.leclowndu93150.bobo_tweaks;
 
 import com.leclowndu93150.bobo_tweaks.additional.autobow.AutoBowRegistration;
 import com.leclowndu93150.bobo_tweaks.additional.armorpreservation.ArmorPreservationRegistration;
+import com.leclowndu93150.bobo_tweaks.additional.effectimmunity.EffectImmunityRegistration;
 import com.leclowndu93150.bobo_tweaks.config.ModConfig;
 import com.leclowndu93150.bobo_tweaks.event.ModEventHandler;
 import com.leclowndu93150.bobo_tweaks.network.ModNetworking;
@@ -15,6 +16,7 @@ import net.minecraft.world.inventory.AnvilMenu;
 import net.minecraft.world.item.BowItem;
 import net.minecraft.world.item.CrossbowItem;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.entity.living.MobEffectEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
@@ -44,6 +46,7 @@ public class BoboTweaks {
 
         AutoBowRegistration.init();
         ArmorPreservationRegistration.init();
+        EffectImmunityRegistration.init();
 
         modEventBus.addListener(this::commonSetup);
     }
