@@ -3,6 +3,7 @@ package com.leclowndu93150.bobo_tweaks;
 import com.leclowndu93150.bobo_tweaks.additional.autobow.AutoBowRegistration;
 import com.leclowndu93150.bobo_tweaks.additional.armorpreservation.ArmorPreservationRegistration;
 import com.leclowndu93150.bobo_tweaks.additional.effectimmunity.EffectImmunityRegistration;
+import com.leclowndu93150.bobo_tweaks.additional.attackeffects.AttackEffectsRegistration;
 import com.leclowndu93150.bobo_tweaks.config.ModConfig;
 import com.leclowndu93150.bobo_tweaks.event.ModEventHandler;
 import com.leclowndu93150.bobo_tweaks.network.ModNetworking;
@@ -47,6 +48,7 @@ public class BoboTweaks {
         AutoBowRegistration.init();
         ArmorPreservationRegistration.init();
         EffectImmunityRegistration.init();
+        AttackEffectsRegistration.init();
 
         modEventBus.addListener(this::commonSetup);
     }
