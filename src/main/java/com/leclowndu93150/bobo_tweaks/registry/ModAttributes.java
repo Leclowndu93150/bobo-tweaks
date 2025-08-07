@@ -47,6 +47,69 @@ public class ModAttributes {
     public static final RegistryObject<Attribute> JUMP_COUNT = ATTRIBUTES.register("jump_count",
         () -> new RangedAttribute("attribute." + BoboTweaks.MODID + ".jump_count", 1.0D, 1.0D, 100.0D).setSyncable(true));
     
+    // New Attributes
+    public static final RegistryObject<Attribute> ABSORPTION_MULTIPLIER = ATTRIBUTES.register("absorption_multiplier",
+        () -> new RangedAttribute("attribute." + BoboTweaks.MODID + ".absorption_multiplier", 1.0D, 0.0D, 10.0D).setSyncable(true));
+    
+    public static final RegistryObject<Attribute> MAX_HP_REGEN = ATTRIBUTES.register("max_hp_regen",
+        () -> new RangedAttribute("attribute." + BoboTweaks.MODID + ".max_hp_regen", 0.0D, 0.0D, 1.0D).setSyncable(true));
+    
+    // Spell School Specific CDR Attributes
+    public static final RegistryObject<Attribute> FIRE_COOLDOWN_REDUCTION = ATTRIBUTES.register("fire_cooldown_reduction",
+        () -> new RangedAttribute("attribute." + BoboTweaks.MODID + ".fire_cooldown_reduction", 1.0D, 0.0D, 10.0D).setSyncable(true));
+    
+    public static final RegistryObject<Attribute> ICE_COOLDOWN_REDUCTION = ATTRIBUTES.register("ice_cooldown_reduction",
+        () -> new RangedAttribute("attribute." + BoboTweaks.MODID + ".ice_cooldown_reduction", 1.0D, 0.0D, 10.0D).setSyncable(true));
+    
+    public static final RegistryObject<Attribute> LIGHTNING_COOLDOWN_REDUCTION = ATTRIBUTES.register("lightning_cooldown_reduction",
+        () -> new RangedAttribute("attribute." + BoboTweaks.MODID + ".lightning_cooldown_reduction", 1.0D, 0.0D, 10.0D).setSyncable(true));
+    
+    public static final RegistryObject<Attribute> HOLY_COOLDOWN_REDUCTION = ATTRIBUTES.register("holy_cooldown_reduction",
+        () -> new RangedAttribute("attribute." + BoboTweaks.MODID + ".holy_cooldown_reduction", 1.0D, 0.0D, 10.0D).setSyncable(true));
+    
+    public static final RegistryObject<Attribute> ENDER_COOLDOWN_REDUCTION = ATTRIBUTES.register("ender_cooldown_reduction",
+        () -> new RangedAttribute("attribute." + BoboTweaks.MODID + ".ender_cooldown_reduction", 1.0D, 0.0D, 10.0D).setSyncable(true));
+    
+    public static final RegistryObject<Attribute> BLOOD_COOLDOWN_REDUCTION = ATTRIBUTES.register("blood_cooldown_reduction",
+        () -> new RangedAttribute("attribute." + BoboTweaks.MODID + ".blood_cooldown_reduction", 1.0D, 0.0D, 10.0D).setSyncable(true));
+    
+    public static final RegistryObject<Attribute> EVOCATION_COOLDOWN_REDUCTION = ATTRIBUTES.register("evocation_cooldown_reduction",
+        () -> new RangedAttribute("attribute." + BoboTweaks.MODID + ".evocation_cooldown_reduction", 1.0D, 0.0D, 10.0D).setSyncable(true));
+    
+    public static final RegistryObject<Attribute> NATURE_COOLDOWN_REDUCTION = ATTRIBUTES.register("nature_cooldown_reduction",
+        () -> new RangedAttribute("attribute." + BoboTweaks.MODID + ".nature_cooldown_reduction", 1.0D, 0.0D, 10.0D).setSyncable(true));
+    
+    public static final RegistryObject<Attribute> ELDRITCH_COOLDOWN_REDUCTION = ATTRIBUTES.register("eldritch_cooldown_reduction",
+        () -> new RangedAttribute("attribute." + BoboTweaks.MODID + ".eldritch_cooldown_reduction", 1.0D, 0.0D, 10.0D).setSyncable(true));
+    
+    // Spell School Specific Cast Time Reduction Attributes
+    public static final RegistryObject<Attribute> FIRE_CAST_TIME_REDUCTION = ATTRIBUTES.register("fire_cast_time_reduction",
+        () -> new RangedAttribute("attribute." + BoboTweaks.MODID + ".fire_cast_time_reduction", 1.0D, 0.0D, 10.0D).setSyncable(true));
+    
+    public static final RegistryObject<Attribute> ICE_CAST_TIME_REDUCTION = ATTRIBUTES.register("ice_cast_time_reduction",
+        () -> new RangedAttribute("attribute." + BoboTweaks.MODID + ".ice_cast_time_reduction", 1.0D, 0.0D, 10.0D).setSyncable(true));
+    
+    public static final RegistryObject<Attribute> LIGHTNING_CAST_TIME_REDUCTION = ATTRIBUTES.register("lightning_cast_time_reduction",
+        () -> new RangedAttribute("attribute." + BoboTweaks.MODID + ".lightning_cast_time_reduction", 1.0D, 0.0D, 10.0D).setSyncable(true));
+    
+    public static final RegistryObject<Attribute> HOLY_CAST_TIME_REDUCTION = ATTRIBUTES.register("holy_cast_time_reduction",
+        () -> new RangedAttribute("attribute." + BoboTweaks.MODID + ".holy_cast_time_reduction", 1.0D, 0.0D, 10.0D).setSyncable(true));
+    
+    public static final RegistryObject<Attribute> ENDER_CAST_TIME_REDUCTION = ATTRIBUTES.register("ender_cast_time_reduction",
+        () -> new RangedAttribute("attribute." + BoboTweaks.MODID + ".ender_cast_time_reduction", 1.0D, 0.0D, 10.0D).setSyncable(true));
+    
+    public static final RegistryObject<Attribute> BLOOD_CAST_TIME_REDUCTION = ATTRIBUTES.register("blood_cast_time_reduction",
+        () -> new RangedAttribute("attribute." + BoboTweaks.MODID + ".blood_cast_time_reduction", 1.0D, 0.0D, 10.0D).setSyncable(true));
+    
+    public static final RegistryObject<Attribute> EVOCATION_CAST_TIME_REDUCTION = ATTRIBUTES.register("evocation_cast_time_reduction",
+        () -> new RangedAttribute("attribute." + BoboTweaks.MODID + ".evocation_cast_time_reduction", 1.0D, 0.0D, 10.0D).setSyncable(true));
+    
+    public static final RegistryObject<Attribute> NATURE_CAST_TIME_REDUCTION = ATTRIBUTES.register("nature_cast_time_reduction",
+        () -> new RangedAttribute("attribute." + BoboTweaks.MODID + ".nature_cast_time_reduction", 1.0D, 0.0D, 10.0D).setSyncable(true));
+    
+    public static final RegistryObject<Attribute> ELDRITCH_CAST_TIME_REDUCTION = ATTRIBUTES.register("eldritch_cast_time_reduction",
+        () -> new RangedAttribute("attribute." + BoboTweaks.MODID + ".eldritch_cast_time_reduction", 1.0D, 0.0D, 10.0D).setSyncable(true));
+    
     public static void register(IEventBus eventBus) {
         ATTRIBUTES.register(eventBus);
     }

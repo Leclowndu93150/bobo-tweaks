@@ -41,6 +41,26 @@ public class ModEventHandler {
                     event.add(entityType, ModAttributes.ALCHEMICAL_BOOST.get());
                     event.add(entityType, ModAttributes.POWER_LINK.get());
                     event.add(entityType, ModAttributes.JUMP_COUNT.get());
+                    event.add(entityType, ModAttributes.ABSORPTION_MULTIPLIER.get());
+                    event.add(entityType, ModAttributes.MAX_HP_REGEN.get());
+                    event.add(entityType, ModAttributes.FIRE_COOLDOWN_REDUCTION.get());
+                    event.add(entityType, ModAttributes.ICE_COOLDOWN_REDUCTION.get());
+                    event.add(entityType, ModAttributes.LIGHTNING_COOLDOWN_REDUCTION.get());
+                    event.add(entityType, ModAttributes.HOLY_COOLDOWN_REDUCTION.get());
+                    event.add(entityType, ModAttributes.ENDER_COOLDOWN_REDUCTION.get());
+                    event.add(entityType, ModAttributes.BLOOD_COOLDOWN_REDUCTION.get());
+                    event.add(entityType, ModAttributes.EVOCATION_COOLDOWN_REDUCTION.get());
+                    event.add(entityType, ModAttributes.NATURE_COOLDOWN_REDUCTION.get());
+                    event.add(entityType, ModAttributes.ELDRITCH_COOLDOWN_REDUCTION.get());
+                    event.add(entityType, ModAttributes.FIRE_CAST_TIME_REDUCTION.get());
+                    event.add(entityType, ModAttributes.ICE_CAST_TIME_REDUCTION.get());
+                    event.add(entityType, ModAttributes.LIGHTNING_CAST_TIME_REDUCTION.get());
+                    event.add(entityType, ModAttributes.HOLY_CAST_TIME_REDUCTION.get());
+                    event.add(entityType, ModAttributes.ENDER_CAST_TIME_REDUCTION.get());
+                    event.add(entityType, ModAttributes.BLOOD_CAST_TIME_REDUCTION.get());
+                    event.add(entityType, ModAttributes.EVOCATION_CAST_TIME_REDUCTION.get());
+                    event.add(entityType, ModAttributes.NATURE_CAST_TIME_REDUCTION.get());
+                    event.add(entityType, ModAttributes.ELDRITCH_CAST_TIME_REDUCTION.get());
                 }
             }
         }
@@ -61,5 +81,6 @@ public class ModEventHandler {
     @SubscribeEvent
     public void onAddReloadListener(AddReloadListenerEvent event) {
         event.addListener(new RefinementManager());
+        event.addListener(new com.leclowndu93150.bobo_tweaks.config.DamageSourceConfig());
     }
 }

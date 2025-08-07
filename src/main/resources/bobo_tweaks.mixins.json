@@ -6,7 +6,10 @@
   "refmap": "bobo_tweaks.refmap.json",
   "mixins": [
     "PlayerMixin",
-    "AnvilMenuMixin"
+    "AnvilMenuMixin",
+    "LivingEntityAbsorptionMixin",
+    "MagicManagerMixin",
+    "AbstractSpellCastTimeMixin"
   ],
   "client": [
     "BowItemMixin",

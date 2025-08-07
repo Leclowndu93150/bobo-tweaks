@@ -46,6 +46,10 @@ public class ModPotions {
     public static final RegistryObject<MobEffect> MYSTICAL_SHIELD = MOB_EFFECTS.register("mystical_shield",
         MysticalShieldEffect::new);
     
+    // New Effects
+    public static final RegistryObject<MobEffect> MANA_DRAIN = MOB_EFFECTS.register("mana_drain",
+        ManaDrainEffect::new);
+    
     public static void register(IEventBus eventBus) {
         MOB_EFFECTS.register(eventBus);
         POTIONS.register(eventBus);

@@ -109,6 +109,8 @@ gradle-app.setting
 help for claude
 .claude
 run-data
+
+ironsspellbooks
 # Cache of project
 .gradletasknamecache
 

@@ -5,6 +5,7 @@ import com.leclowndu93150.bobo_tweaks.additional.armorpreservation.ArmorPreserva
 import com.leclowndu93150.bobo_tweaks.additional.effectimmunity.EffectImmunityRegistration;
 import com.leclowndu93150.bobo_tweaks.additional.attackeffects.AttackEffectsRegistration;
 import com.leclowndu93150.bobo_tweaks.config.ModConfig;
+import com.leclowndu93150.bobo_tweaks.config.DamageSourceConfig;
 import com.leclowndu93150.bobo_tweaks.event.ModEventHandler;
 import com.leclowndu93150.bobo_tweaks.network.ModNetworking;
 import com.leclowndu93150.bobo_tweaks.registry.ModAttributes;

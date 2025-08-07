@@ -1,0 +1,6 @@
+{
+  "damage_source": "minecraft:fall",
+  "affects_players": true,
+  "affects_mobs": true,
+  "damage_multiplier": 2.5
+}

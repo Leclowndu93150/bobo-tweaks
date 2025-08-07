@@ -88,7 +88,7 @@ public class ModConfig {
             builder.push("guard_point");
             guardPointPercentage = builder
                 .comment("Percentage of max health converted to absorption per level (0.2 = 20%)")
-                .defineInRange("absorption_percentage", 0.2, 0.1, 2.0);
+                .defineInRange("absorption_percentage", 0.2, 0.01, 2.0);
             builder.pop();
             
             builder.push("the_warden");
@@ -103,7 +103,7 @@ public class ModConfig {
             builder.push("mystical_shield");
             mysticalManaPercentage = builder
                 .comment("Percentage of current mana consumed per level (0.2 = 20%)")
-                .defineInRange("mana_percentage", 0.2, 0.1, 1.0);
+                .defineInRange("mana_percentage", 0.2, 0.01, 1.0);
             mysticalBaseShield = builder
                 .comment("Base shield amount granted (independent of level)")
                 .defineInRange("base_shield", 10.0, 1.0, 50.0);

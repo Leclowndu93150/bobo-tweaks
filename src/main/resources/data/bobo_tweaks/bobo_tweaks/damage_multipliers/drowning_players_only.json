@@ -1,0 +1,6 @@
+{
+  "damage_source": "minecraft:drown",
+  "affects_players": true,
+  "affects_mobs": false,
+  "damage_multiplier": 3.0
+}

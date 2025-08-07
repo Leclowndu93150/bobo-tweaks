@@ -1,0 +1,6 @@
+{
+  "damage_source": "minecraft:in_fire",
+  "affects_players": true,
+  "affects_mobs": true,
+  "damage_multiplier": 1.5
+}

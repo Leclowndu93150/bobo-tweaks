@@ -1,0 +1,6 @@
+{
+  "damage_source": "irons_spellbooks:fire_magic",
+  "affects_players": true,
+  "affects_mobs": true,
+  "damage_multiplier": 0.8
+}
