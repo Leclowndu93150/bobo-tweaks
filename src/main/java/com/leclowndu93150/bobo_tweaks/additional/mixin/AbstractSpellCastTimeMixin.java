@@ -3,11 +3,14 @@ package com.leclowndu93150.bobo_tweaks.additional.mixin;
 import com.leclowndu93150.bobo_tweaks.registry.ModAttributes;
 import io.redspace.ironsspellbooks.api.registry.SchoolRegistry;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
+import io.redspace.ironsspellbooks.api.spells.CastType;
 import io.redspace.ironsspellbooks.api.spells.SchoolType;
+import io.redspace.ironsspellbooks.api.util.Utils;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraftforge.registries.RegistryObject;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
@@ -15,7 +18,10 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import static io.redspace.ironsspellbooks.api.registry.AttributeRegistry.CAST_TIME_REDUCTION;
 
 @Mixin(value = AbstractSpell.class, remap = false)
-public class AbstractSpellCastTimeMixin {
+public abstract class AbstractSpellCastTimeMixin {
+    
+    @Shadow
+    public abstract CastType getCastType();
     
     @ModifyVariable(
         method = "getEffectiveCastTime", 
@@ -29,7 +35,13 @@ public class AbstractSpellCastTimeMixin {
             double schoolSpecificCTR = bobo_tweaks$getSchoolSpecificCTR(entity, school);
             
             if (schoolSpecificCTR != 1.0) {
-                return schoolSpecificCTR;
+                if (getCastType() != CastType.CONTINUOUS) {
+                    // For non-continuous spells: higher CTR = shorter cast time
+                    return 2 - Utils.softCapFormula(schoolSpecificCTR);
+                } else {
+                    // For continuous spells: higher CTR = longer duration
+                    return schoolSpecificCTR;
+                }
             }
         }
         

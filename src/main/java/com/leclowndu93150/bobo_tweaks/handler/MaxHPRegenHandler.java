@@ -57,8 +57,4 @@ public class MaxHPRegenHandler {
             }
         }
     }
-    
-    public static void tickNonPlayerEntities() {
-        // This method will be called from the main event handler for non-player entities
-    }
 }
