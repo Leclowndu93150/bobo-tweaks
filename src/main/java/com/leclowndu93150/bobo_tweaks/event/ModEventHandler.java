@@ -2,8 +2,10 @@ package com.leclowndu93150.bobo_tweaks.event;
 
 import com.leclowndu93150.bobo_tweaks.BoboTweaks;
 import com.leclowndu93150.bobo_tweaks.registry.ModAttributes;
+import com.leclowndu93150.bobo_tweaks.registry.ModPotions;
 import com.leclowndu93150.bobo_tweaks.refinement.RefinementManager;
 import com.leclowndu93150.bobo_tweaks.util.AttributeTickHandler;
+import io.redspace.ironsspellbooks.api.magic.MagicData;
 import net.minecraft.server.packs.resources.ResourceManagerReloadListener;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -13,7 +15,9 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.AddReloadListenerEvent;
 import net.minecraftforge.event.entity.EntityAttributeModificationEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
+import net.minecraftforge.event.entity.living.MobEffectEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 
@@ -82,5 +86,29 @@ public class ModEventHandler {
     public void onAddReloadListener(AddReloadListenerEvent event) {
         event.addListener(new RefinementManager());
         event.addListener(new com.leclowndu93150.bobo_tweaks.config.DamageSourceConfig());
+    }
+    
+    @SubscribeEvent
+    public void onEffectAdded(MobEffectEvent.Added event) {
+        if (event.getEffectInstance().getEffect() == ModPotions.MANA_DRAIN.get()) {
+            LivingEntity entity = event.getEntity();
+            int amplifier = event.getEffectInstance().getAmplifier();
+            
+            System.out.println(!entity.level().isClientSide() + " " + ModList.get().isLoaded("irons_spellbooks"));
+            
+            if (!entity.level().isClientSide() && ModList.get().isLoaded("irons_spellbooks")) {
+                try {
+                    var magicData = MagicData.getPlayerMagicData(entity);
+                    float currentMana = magicData.getMana();
+                    float manaToDrain = 10.0f * (amplifier + 1);
+                    
+                    magicData.setMana(Math.max(0, currentMana - manaToDrain));
+                    
+                    BoboTweaks.getLogger().info("Drained {} mana from {}", manaToDrain, entity.getName().getString());
+                } catch (Exception e) {
+                    BoboTweaks.getLogger().warn("Failed to drain mana from entity", e);
+                }
+            }
+        }
     }
 }

@@ -15,15 +15,13 @@ public class ModPotions {
     
     public static final DeferredRegister<Potion> POTIONS = 
         DeferredRegister.create(ForgeRegistries.POTIONS, BoboTweaks.MODID);
-    
-    // Shield Effects
+
     public static final RegistryObject<MobEffect> GUARD_POINT = MOB_EFFECTS.register("guard_point",
         GuardPointEffect::new);
     
     public static final RegistryObject<MobEffect> THE_WARDEN = MOB_EFFECTS.register("the_warden",
         TheWardenEffect::new);
-    
-    // Alchemical Protocol Effects
+
     public static final RegistryObject<MobEffect> ALCHEMICAL_POWER_UP = MOB_EFFECTS.register("alchemical_power_up",
         AlchemicalPowerUpEffect::new);
     
@@ -38,15 +36,13 @@ public class ModPotions {
     
     public static final RegistryObject<MobEffect> ALCHEMICAL_SPEED = MOB_EFFECTS.register("alchemical_speed",
         AlchemicalSpeedEffect::new);
-    
-    // Team Effects
+
     public static final RegistryObject<MobEffect> CONDUIT = MOB_EFFECTS.register("conduit",
         ConduitEffect::new);
 
     public static final RegistryObject<MobEffect> MYSTICAL_SHIELD = MOB_EFFECTS.register("mystical_shield",
         MysticalShieldEffect::new);
-    
-    // New Effects
+
     public static final RegistryObject<MobEffect> MANA_DRAIN = MOB_EFFECTS.register("mana_drain",
         ManaDrainEffect::new);
     

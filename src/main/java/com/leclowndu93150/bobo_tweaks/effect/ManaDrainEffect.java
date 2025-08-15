@@ -23,19 +23,6 @@ public class ManaDrainEffect extends MobEffect {
 
     @Override
     public void applyInstantenousEffect(@Nullable Entity pSource, @Nullable Entity pIndirectSource, LivingEntity pLivingEntity, int pAmplifier, double pHealth) {
-        if (!pLivingEntity.level().isClientSide() && ModList.get().isLoaded("irons_spellbooks")) {
-            try {
-                var magicData = MagicData.getPlayerMagicData(pLivingEntity);
-                float currentMana = magicData.getMana();
-                float manaToDrain = MANA_DRAIN_PER_LEVEL * (pAmplifier + 1);
-                
-                magicData.setMana(Math.max(0, currentMana - manaToDrain));
-                
-                BoboTweaks.getLogger().debug("Drained {} mana from {}", manaToDrain, pLivingEntity.getName().getString());
-            } catch (Exception e) {
-                BoboTweaks.getLogger().warn("Failed to drain mana from entity", e);
-            }
-        }
     }
 
     @Override

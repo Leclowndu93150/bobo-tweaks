@@ -1,7 +1,7 @@
 package com.leclowndu93150.bobo_tweaks;
 
 import com.leclowndu93150.bobo_tweaks.additional.autobow.AutoBowRegistration;
-import com.leclowndu93150.bobo_tweaks.additional.armorpreservation.ArmorPreservationRegistration;
+import com.leclowndu93150.bobo_tweaks.additional.itempreservation.ItemPreservationRegistration;
 import com.leclowndu93150.bobo_tweaks.additional.effectimmunity.EffectImmunityRegistration;
 import com.leclowndu93150.bobo_tweaks.additional.attackeffects.AttackEffectsRegistration;
 import com.leclowndu93150.bobo_tweaks.config.ModConfig;
@@ -17,6 +17,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AnvilMenu;
 import net.minecraft.world.item.BowItem;
 import net.minecraft.world.item.CrossbowItem;
+import net.minecraft.world.item.EnchantedGoldenAppleItem;
+import net.minecraft.world.item.Items;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.living.MobEffectEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -47,7 +49,7 @@ public class BoboTweaks {
         ModLoadingContext.get().registerConfig(Type.CLIENT, ModConfig.CLIENT_SPEC);
 
         AutoBowRegistration.init();
-        ArmorPreservationRegistration.init();
+        ItemPreservationRegistration.init();
         EffectImmunityRegistration.init();
         AttackEffectsRegistration.init();
 
@@ -61,4 +63,5 @@ public class BoboTweaks {
     public static Logger getLogger() {
         return LOGGER;
     }
+
 }
