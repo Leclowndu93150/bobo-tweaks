@@ -1,9 +1,12 @@
 package com.leclowndu93150.bobo_tweaks;
 
+import com.leclowndu93150.baguettelib.event.inventory.InventoryUpdateEvent;
 import com.leclowndu93150.bobo_tweaks.additional.autobow.AutoBowRegistration;
 import com.leclowndu93150.bobo_tweaks.additional.itempreservation.ItemPreservationRegistration;
 import com.leclowndu93150.bobo_tweaks.additional.effectimmunity.EffectImmunityRegistration;
 import com.leclowndu93150.bobo_tweaks.additional.attackeffects.AttackEffectsRegistration;
+import com.leclowndu93150.bobo_tweaks.additional.exclusiveitems.ExclusiveItemsRegistration;
+import com.leclowndu93150.bobo_tweaks.additional.exclusiveitems.config.ExclusiveItemsConfig;
 import com.leclowndu93150.bobo_tweaks.config.ModConfig;
 import com.leclowndu93150.bobo_tweaks.config.DamageSourceConfig;
 import com.leclowndu93150.bobo_tweaks.event.ModEventHandler;
@@ -19,6 +22,7 @@ import net.minecraft.world.item.BowItem;
 import net.minecraft.world.item.CrossbowItem;
 import net.minecraft.world.item.EnchantedGoldenAppleItem;
 import net.minecraft.world.item.Items;
+import net.minecraft.server.MinecraftServer;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.living.MobEffectEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -27,6 +31,7 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig.Type;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.server.ServerLifecycleHooks;
 import org.slf4j.Logger;
 
 @Mod(BoboTweaks.MODID)
@@ -47,11 +52,13 @@ public class BoboTweaks {
 
         ModLoadingContext.get().registerConfig(Type.COMMON, ModConfig.COMMON_SPEC);
         ModLoadingContext.get().registerConfig(Type.CLIENT, ModConfig.CLIENT_SPEC);
+        ModLoadingContext.get().registerConfig(Type.COMMON, ExclusiveItemsConfig.SPEC, "bobo_tweaks-exclusive_items.toml");
 
         AutoBowRegistration.init();
         ItemPreservationRegistration.init();
         EffectImmunityRegistration.init();
         AttackEffectsRegistration.init();
+        ExclusiveItemsRegistration.init();
 
         modEventBus.addListener(this::commonSetup);
     }
@@ -64,4 +71,7 @@ public class BoboTweaks {
         return LOGGER;
     }
 
+    public static MinecraftServer getServer() {
+        return ServerLifecycleHooks.getCurrentServer();
+    }
 }
