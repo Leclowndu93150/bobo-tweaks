@@ -2,6 +2,7 @@ package com.leclowndu93150.bobo_tweaks.event;
 
 import com.leclowndu93150.bobo_tweaks.BoboTweaks;
 import com.leclowndu93150.bobo_tweaks.registry.ModAttributes;
+import com.leclowndu93150.bobo_tweaks.registry.ModDamageTypes;
 import com.leclowndu93150.bobo_tweaks.registry.ModPotions;
 import com.leclowndu93150.bobo_tweaks.refinement.RefinementManager;
 import com.leclowndu93150.bobo_tweaks.util.AttributeTickHandler;
@@ -15,7 +16,9 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.AddReloadListenerEvent;
 import net.minecraftforge.event.entity.EntityAttributeModificationEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
+import net.minecraftforge.event.entity.living.LivingKnockBackEvent;
 import net.minecraftforge.event.entity.living.MobEffectEvent;
+import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.common.Mod;
@@ -108,6 +111,41 @@ public class ModEventHandler {
                 } catch (Exception e) {
                     BoboTweaks.getLogger().warn("Failed to drain mana from entity", e);
                 }
+            }
+        }
+    }
+    
+    @SubscribeEvent(priority = EventPriority.HIGHEST)
+    public void onSpecialDamageTypes(LivingHurtEvent event) {
+        if (event.getSource().is(ModDamageTypes.HYPERTHERMIA)) {
+            LivingEntity entity = event.getEntity();
+            double heatResistance = entity.getAttributeValue(ModAttributes.HEAT_RESISTANCE.get());
+            double hyperthermia = entity.getAttributeValue(ModAttributes.HYPERTHERMIA.get());
+            double effectiveHyperthermia = Math.max(0, hyperthermia - heatResistance);
+
+            float newDamage = (float) (entity.getMaxHealth() * effectiveHyperthermia);
+            event.setAmount(newDamage);
+
+        } else if (event.getSource().is(ModDamageTypes.HYPOTHERMIA)) {
+            LivingEntity entity = event.getEntity();
+            double coldResistance = entity.getAttributeValue(ModAttributes.COLD_RESISTANCE.get());
+            double hypothermia = entity.getAttributeValue(ModAttributes.HYPOTHERMIA.get());
+            double effectiveHypothermia = Math.max(0, hypothermia - coldResistance);
+
+            float newDamage = (float) (entity.getMaxHealth() * effectiveHypothermia);
+            event.setAmount(newDamage);
+        }
+    }
+    
+    @SubscribeEvent
+    public void onLivingKnockBack(LivingKnockBackEvent event) {
+        LivingEntity entity = event.getEntity();
+        if (entity.getLastDamageSource() != null) {
+            if (entity.getLastDamageSource().is(ModDamageTypes.LIFE_DRAIN) ||
+                entity.getLastDamageSource().is(ModDamageTypes.HYPERTHERMIA) ||
+                entity.getLastDamageSource().is(ModDamageTypes.HYPOTHERMIA)) {
+
+                event.setCanceled(true);
             }
         }
     }

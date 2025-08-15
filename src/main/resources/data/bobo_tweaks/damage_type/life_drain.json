@@ -1,5 +1,6 @@
 {
   "exhaustion": 0.0,
   "message_id": "life_drain",
-  "scaling": "never"
+  "scaling": "never",
+  "effects": "hurt"
 }
