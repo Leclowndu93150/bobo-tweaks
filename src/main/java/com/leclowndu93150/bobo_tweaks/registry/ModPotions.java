@@ -46,6 +46,21 @@ public class ModPotions {
     public static final RegistryObject<MobEffect> MANA_DRAIN = MOB_EFFECTS.register("mana_drain",
         ManaDrainEffect::new);
     
+    public static final RegistryObject<MobEffect> FURY = MOB_EFFECTS.register("fury",
+        FuryEffect::new);
+    
+    public static final RegistryObject<MobEffect> REBUKE = MOB_EFFECTS.register("rebuke",
+        RebukeEffect::new);
+    
+    public static final RegistryObject<MobEffect> STATUS_OFFLINE = MOB_EFFECTS.register("status_offline",
+        StatusOfflineEffect::new);
+    
+    public static final RegistryObject<MobEffect> REJUVENATING_SHOTS = MOB_EFFECTS.register("rejuvenating_shots",
+        RejuvenatingShotsEffect::new);
+    
+    public static final RegistryObject<MobEffect> ALCHEMICAL_LEECHING = MOB_EFFECTS.register("alchemical_leeching",
+        AlchemicalLeechingEffect::new);
+    
     public static void register(IEventBus eventBus) {
         MOB_EFFECTS.register(eventBus);
         POTIONS.register(eventBus);

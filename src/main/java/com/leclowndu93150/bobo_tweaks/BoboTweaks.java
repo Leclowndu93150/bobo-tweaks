@@ -15,6 +15,8 @@ import com.leclowndu93150.bobo_tweaks.registry.ModAttributes;
 import com.leclowndu93150.bobo_tweaks.registry.ModCreativeTabs;
 import com.leclowndu93150.bobo_tweaks.registry.ModPotions;
 import com.mojang.logging.LogUtils;
+import io.redspace.ironsspellbooks.api.events.SpellDamageEvent;
+import io.redspace.ironsspellbooks.api.events.SpellOnCastEvent;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AnvilMenu;
@@ -74,4 +76,5 @@ public class BoboTweaks {
     public static MinecraftServer getServer() {
         return ServerLifecycleHooks.getCurrentServer();
     }
+
 }

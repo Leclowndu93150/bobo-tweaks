@@ -53,6 +53,30 @@ public class ModConfig {
         public final ForgeConfigSpec.DoubleValue speedAttackSpeedScaling;
         public final ForgeConfigSpec.DoubleValue conduitSharePercentage;
         public final ForgeConfigSpec.DoubleValue airJumpVelocity;
+        public final ForgeConfigSpec.DoubleValue lifeLeechSpellMultiplier;
+        
+        // Fury Effect
+        public final ForgeConfigSpec.DoubleValue furyHealthDrainPercentage;
+        public final ForgeConfigSpec.DoubleValue furyFireDamageMultiplier;
+        public final ForgeConfigSpec.DoubleValue furyAttackScaling;
+        
+        // Rebuke Effect
+        public final ForgeConfigSpec.DoubleValue rebukeBaseDamage;
+        public final ForgeConfigSpec.DoubleValue rebukeMaxHpPercentage;
+        
+        // Status Offline Effect
+        public final ForgeConfigSpec.DoubleValue statusOfflineBaseDamage;
+        public final ForgeConfigSpec.DoubleValue statusOfflineStatusBonus;
+        
+        // Rejuvenating Shots Effect
+        public final ForgeConfigSpec.DoubleValue rejuvenatingShotsFlatHeal;
+        public final ForgeConfigSpec.DoubleValue rejuvenatingShotsManaPercentage;
+        public final ForgeConfigSpec.DoubleValue rejuvenatingShotsManaCost;
+        public final ForgeConfigSpec.DoubleValue rejuvenatingShotsHealCap;
+        
+        // Alchemical Leeching Effect
+        public final ForgeConfigSpec.DoubleValue alchemicalLeechingBase;
+        public final ForgeConfigSpec.DoubleValue alchemicalLeechingScaling;
         
         CommonConfig(ForgeConfigSpec.Builder builder) {
             builder.push("life_drain");
@@ -176,6 +200,66 @@ public class ModConfig {
             airJumpVelocity = builder
                 .comment("Velocity for air jumps (0.55 = stronger than normal, 0.42 = normal jump strength)")
                 .defineInRange("air_jump_velocity", 0.55, 0.3, 1.0);
+            builder.pop();
+            
+            builder.push("life_leech");
+            lifeLeechSpellMultiplier = builder
+                .comment("Multiplier for life leech when using spell attacks (0.5 = 50% effectiveness)")
+                .defineInRange("spell_multiplier", 0.5, 0.0, 1.0);
+            builder.pop();
+            
+            builder.push("fury_effect");
+            furyHealthDrainPercentage = builder
+                .comment("Percentage of current health drained per level (0.1 = 10%)")
+                .defineInRange("health_drain_percentage", 0.1, 0.01, 0.5);
+            furyFireDamageMultiplier = builder
+                .comment("Percentage of lost HP added to fire damage (0.5 = 50%)")
+                .defineInRange("fire_damage_multiplier", 0.5, 0.1, 2.0);
+            furyAttackScaling = builder
+                .comment("Scaling factor for number of attacks (0.5 = 0.5 attacks per damage amplifier)")
+                .defineInRange("attack_scaling", 0.5, 0.1, 2.0);
+            builder.pop();
+            
+            builder.push("rebuke_effect");
+            rebukeBaseDamage = builder
+                .comment("Base flat damage dealt to attacker per level")
+                .defineInRange("base_damage", 5.0, 1.0, 50.0);
+            rebukeMaxHpPercentage = builder
+                .comment("Percentage of attacker's max HP dealt as damage per level (0.1 = 10%)")
+                .defineInRange("max_hp_percentage", 0.1, 0.01, 0.5);
+            builder.pop();
+            
+            builder.push("status_offline_effect");
+            statusOfflineBaseDamage = builder
+                .comment("Base magic damage per level")
+                .defineInRange("base_damage", 10.0, 1.0, 50.0);
+            statusOfflineStatusBonus = builder
+                .comment("Additional damage per negative status cleared")
+                .defineInRange("status_bonus", 5.0, 1.0, 20.0);
+            builder.pop();
+            
+            builder.push("rejuvenating_shots_effect");
+            rejuvenatingShotsFlatHeal = builder
+                .comment("Base heal amount per level (multiplied by crit rate)")
+                .defineInRange("flat_heal", 5.0, 1.0, 50.0);
+            rejuvenatingShotsManaPercentage = builder
+                .comment("Percentage of max mana added to healing per level (0.01 = 1%)")
+                .defineInRange("mana_percentage", 0.01, 0.001, 0.1);
+            rejuvenatingShotsManaCost = builder
+                .comment("Flat mana cost per shot per level")
+                .defineInRange("mana_cost", 10.0, 1.0, 100.0);
+            rejuvenatingShotsHealCap = builder
+                .comment("Maximum healing per shot per level (0 = no cap)")
+                .defineInRange("heal_cap", 50.0, 0.0, 200.0);
+            builder.pop();
+            
+            builder.push("alchemical_leeching_effect");
+            alchemicalLeechingBase = builder
+                .comment("Base life leech percentage per level (0.05 = 5%)")
+                .defineInRange("base_leech", 0.05, 0.01, 0.5);
+            alchemicalLeechingScaling = builder
+                .comment("Additional life leech per alchemical boost point per level (0.01 = 1%)")
+                .defineInRange("alchemical_scaling", 0.01, 0.001, 0.1);
             builder.pop();
         }
     }

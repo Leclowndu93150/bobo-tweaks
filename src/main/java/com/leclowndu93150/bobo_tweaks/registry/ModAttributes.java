@@ -110,6 +110,13 @@ public class ModAttributes {
     public static final RegistryObject<Attribute> ELDRITCH_CAST_TIME_REDUCTION = ATTRIBUTES.register("eldritch_cast_time_reduction",
         () -> new RangedAttribute("attribute." + BoboTweaks.MODID + ".eldritch_cast_time_reduction", 1.0D, 0.0D, 10.0D).setSyncable(true));
     
+    // Life Leech Attributes
+    public static final RegistryObject<Attribute> LIFE_LEECH = ATTRIBUTES.register("life_leech",
+        () -> new RangedAttribute("attribute." + BoboTweaks.MODID + ".life_leech", 0.0D, 0.0D, 1.0D).setSyncable(true));
+    
+    public static final RegistryObject<Attribute> LEECH_CAP = ATTRIBUTES.register("leech_cap",
+        () -> new RangedAttribute("attribute." + BoboTweaks.MODID + ".leech_cap", 0.0D, 0.0D, 1024.0D).setSyncable(true));
+    
     public static void register(IEventBus eventBus) {
         ATTRIBUTES.register(eventBus);
     }

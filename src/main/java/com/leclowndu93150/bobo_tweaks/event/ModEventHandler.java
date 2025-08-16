@@ -1,6 +1,7 @@
 package com.leclowndu93150.bobo_tweaks.event;
 
 import com.leclowndu93150.bobo_tweaks.BoboTweaks;
+import com.leclowndu93150.bobo_tweaks.config.DamageSourceConfig;
 import com.leclowndu93150.bobo_tweaks.registry.ModAttributes;
 import com.leclowndu93150.bobo_tweaks.registry.ModDamageTypes;
 import com.leclowndu93150.bobo_tweaks.registry.ModPotions;
@@ -68,6 +69,8 @@ public class ModEventHandler {
                     event.add(entityType, ModAttributes.EVOCATION_CAST_TIME_REDUCTION.get());
                     event.add(entityType, ModAttributes.NATURE_CAST_TIME_REDUCTION.get());
                     event.add(entityType, ModAttributes.ELDRITCH_CAST_TIME_REDUCTION.get());
+                    event.add(entityType, ModAttributes.LIFE_LEECH.get());
+                    event.add(entityType, ModAttributes.LEECH_CAP.get());
                 }
             }
         }
@@ -88,7 +91,7 @@ public class ModEventHandler {
     @SubscribeEvent
     public void onAddReloadListener(AddReloadListenerEvent event) {
         event.addListener(new RefinementManager());
-        event.addListener(new com.leclowndu93150.bobo_tweaks.config.DamageSourceConfig());
+        event.addListener(new DamageSourceConfig());
     }
     
     @SubscribeEvent
