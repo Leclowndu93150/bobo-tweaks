@@ -27,7 +27,7 @@ import java.util.UUID;
 @Mod.EventBusSubscriber(modid = BoboTweaks.MODID)
 public class FuryEffect extends MobEffect {
     private static final Map<UUID, FuryData> furyDataMap = new HashMap<>();
-    private static final UUID FIRE_DAMAGE_UUID = UUID.fromString("7a3f7c4e-9f1b-4c2d-8e3a-1b9c8d7e6f5a");
+    private static final UUID MAGIC_DAMAGE_UUID = UUID.fromString("7a3f7c4e-9f1b-4c2d-8e3a-1b9c8d7e6f5a");
     
     public FuryEffect() {
         super(MobEffectCategory.NEUTRAL, 0xFF4500);
@@ -52,17 +52,17 @@ public class FuryEffect extends MobEffect {
                     damageAmplifier = damageAmpInstance.getValue();
                 }
                 
-                float fireDamageBonus = healthToDrain * getFireDamageMultiplier();
+                float magicDamageBonus = healthToDrain * getMagicDamageMultiplier();
                 int attackCount = calculateAttackCount(damageAmplifier);
                 
-                FuryData data = new FuryData(fireDamageBonus, attackCount);
+                FuryData data = new FuryData(magicDamageBonus, attackCount);
                 furyDataMap.put(entity.getUUID(), data);
                 
                 if (ModList.get().isLoaded("attributeslib")) {
                     try {
-                        applyFireDamageAttribute(entity, fireDamageBonus);
+                        applyMagicDamageAttribute(entity, magicDamageBonus);
                     } catch (Exception e) {
-                        BoboTweaks.getLogger().warn("Failed to apply fire damage attribute", e);
+                        BoboTweaks.getLogger().warn("Failed to apply magic damage attribute", e);
                     }
                 }
             }
@@ -78,47 +78,47 @@ public class FuryEffect extends MobEffect {
             
             if (ModList.get().isLoaded("attributeslib")) {
                 try {
-                    removeFireDamageAttribute(entity);
+                    removeMagicDamageAttribute(entity);
                 } catch (Exception e) {
-                    BoboTweaks.getLogger().warn("Failed to remove fire damage attribute", e);
+                    BoboTweaks.getLogger().warn("Failed to remove magic damage attribute", e);
                 }
             }
         }
     }
     
-    private void applyFireDamageAttribute(LivingEntity entity, float fireDamageBonus) {
+    private void applyMagicDamageAttribute(LivingEntity entity, float magicDamageBonus) {
         try {
-            var fireDamageAttribute = net.minecraftforge.registries.ForgeRegistries.ATTRIBUTES
-                .getValue(new net.minecraft.resources.ResourceLocation("attributeslib", "fire_damage"));
-            if (fireDamageAttribute != null) {
-                AttributeInstance instance = entity.getAttribute(fireDamageAttribute);
+            var magicDamageAttribute = net.minecraftforge.registries.ForgeRegistries.ATTRIBUTES
+                .getValue(new net.minecraft.resources.ResourceLocation("attributeslib", "magic_damage"));
+            if (magicDamageAttribute != null) {
+                AttributeInstance instance = entity.getAttribute(magicDamageAttribute);
                 if (instance != null) {
-                    instance.removeModifier(FIRE_DAMAGE_UUID);
+                    instance.removeModifier(MAGIC_DAMAGE_UUID);
                     instance.addTransientModifier(new AttributeModifier(
-                        FIRE_DAMAGE_UUID,
-                        "Fury fire damage",
-                        fireDamageBonus,
+                        MAGIC_DAMAGE_UUID,
+                        "Fury magic damage",
+                        magicDamageBonus,
                         AttributeModifier.Operation.ADDITION
                     ));
                 }
             }
         } catch (Exception e) {
-            BoboTweaks.getLogger().warn("AttributesLib not available or fire damage attribute not found", e);
+            BoboTweaks.getLogger().warn("AttributesLib not available or magic damage attribute not found", e);
         }
     }
     
-    private static void removeFireDamageAttribute(LivingEntity entity) {
+    private static void removeMagicDamageAttribute(LivingEntity entity) {
         try {
-            var fireDamageAttribute = net.minecraftforge.registries.ForgeRegistries.ATTRIBUTES
-                .getValue(new net.minecraft.resources.ResourceLocation("attributeslib", "fire_damage"));
-            if (fireDamageAttribute != null) {
-                AttributeInstance instance = entity.getAttribute(fireDamageAttribute);
+            var magicDamageAttribute = net.minecraftforge.registries.ForgeRegistries.ATTRIBUTES
+                .getValue(new net.minecraft.resources.ResourceLocation("attributeslib", "magic_damage"));
+            if (magicDamageAttribute != null) {
+                AttributeInstance instance = entity.getAttribute(magicDamageAttribute);
                 if (instance != null) {
-                    instance.removeModifier(FIRE_DAMAGE_UUID);
+                    instance.removeModifier(MAGIC_DAMAGE_UUID);
                 }
             }
         } catch (Exception e) {
-            BoboTweaks.getLogger().warn("AttributesLib not available or fire damage attribute not found", e);
+            BoboTweaks.getLogger().warn("AttributesLib not available or magic damage attribute not found", e);
         }
     }
     
@@ -136,9 +136,9 @@ public class FuryEffect extends MobEffect {
                     furyDataMap.remove(attacker.getUUID());
                     if (ModList.get().isLoaded("attributeslib")) {
                         try {
-                            removeFireDamageAttribute(attacker);
+                            removeMagicDamageAttribute(attacker);
                         } catch (Exception e) {
-                            BoboTweaks.getLogger().warn("Failed to remove fire damage attribute", e);
+                            BoboTweaks.getLogger().warn("Failed to remove magic damage attribute", e);
                         }
                     }
                     
@@ -153,14 +153,14 @@ public class FuryEffect extends MobEffect {
     
     private int calculateAttackCount(double damageAmplifier) {
         double scalingFactor = ModConfig.COMMON.furyAttackScaling.get();
-        return (int) Math.floor(1 + (scalingFactor * damageAmplifier));
+        return Math.max(1, (int) Math.floor(1 + (scalingFactor * damageAmplifier)));
     }
     
     private float getHealthDrainPercentage(int amplifier) {
         return (float) (ModConfig.COMMON.furyHealthDrainPercentage.get() * (amplifier + 1));
     }
     
-    private float getFireDamageMultiplier() {
+    private float getMagicDamageMultiplier() {
         return ModConfig.COMMON.furyFireDamageMultiplier.get().floatValue();
     }
     
@@ -170,11 +170,11 @@ public class FuryEffect extends MobEffect {
     }
     
     private static class FuryData {
-        public float fireDamageBonus;
+        public float magicDamageBonus;
         public int remainingAttacks;
         
-        public FuryData(float fireDamageBonus, int remainingAttacks) {
-            this.fireDamageBonus = fireDamageBonus;
+        public FuryData(float magicDamageBonus, int remainingAttacks) {
+            this.magicDamageBonus = magicDamageBonus;
             this.remainingAttacks = remainingAttacks;
         }
     }

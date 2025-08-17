@@ -9,11 +9,13 @@
     "AnvilMenuMixin",
     "AbsorptionEffectMixin",
     "MagicManagerMixin",
-    "AbstractSpellCastTimeMixin"
+    "AbstractSpellCastTimeMixin",
+    "SmithingMenuMixin"
   ],
   "client": [
     "BowItemMixin",
-    "CrossbowItemMixin"
+    "CrossbowItemMixin",
+    "ModCrossbowItemMixin"
   ],
   "injectors": {
     "defaultRequire": 1

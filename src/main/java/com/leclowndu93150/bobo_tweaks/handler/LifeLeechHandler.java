@@ -9,6 +9,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.AbstractArrow;
+import net.minecraft.world.inventory.SmithingMenu;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.event.entity.living.LivingHealEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
@@ -23,18 +24,18 @@ public class LifeLeechHandler {
     @SubscribeEvent(priority = EventPriority.LOW)
     public static void onLivingHurt(LivingHurtEvent event) {
         if (event.getSource().getEntity() instanceof LivingEntity attacker) {
-            AttributeInstance lifeLeechInstance = attacker.getAttribute(ModAttributes.LIFE_LEECH.get());
-            AttributeInstance leechCapInstance = attacker.getAttribute(ModAttributes.LEECH_CAP.get());
+            AttributeInstance lifestealInstance = attacker.getAttribute(ModAttributes.LIFESTEAL.get());
+            AttributeInstance lifestealCapInstance = attacker.getAttribute(ModAttributes.LIFESTEAL_CAP.get());
             
-            if (lifeLeechInstance != null && lifeLeechInstance.getValue() > 0) {
-                double lifeLeechPercent = lifeLeechInstance.getValue();
-                double leechCap = leechCapInstance != null ? leechCapInstance.getValue() : 0.0D;
+            if (lifestealInstance != null && lifestealInstance.getValue() > 0) {
+                double lifestealPercent = lifestealInstance.getValue();
+                double lifestealCap = lifestealCapInstance != null ? lifestealCapInstance.getValue() : 0.0D;
                 
                 float damageDealt = event.getAmount();
-                float healAmount = (float) (damageDealt * lifeLeechPercent);
+                float healAmount = (float) (damageDealt * lifestealPercent);
                 
-                if (leechCap > 0) {
-                    healAmount = Math.min(healAmount, (float) leechCap);
+                if (lifestealCap > 0) {
+                    healAmount = Math.min(healAmount, (float) lifestealCap);
                 }
                 
                 if (healAmount > 0) {
@@ -45,18 +46,18 @@ public class LifeLeechHandler {
         
         if (event.getSource().getDirectEntity() instanceof AbstractArrow arrow) {
             if (arrow.getOwner() instanceof LivingEntity attacker) {
-                AttributeInstance lifeLeechInstance = attacker.getAttribute(ModAttributes.LIFE_LEECH.get());
-                AttributeInstance leechCapInstance = attacker.getAttribute(ModAttributes.LEECH_CAP.get());
+                AttributeInstance lifestealInstance = attacker.getAttribute(ModAttributes.LIFESTEAL.get());
+                AttributeInstance lifestealCapInstance = attacker.getAttribute(ModAttributes.LIFESTEAL_CAP.get());
                 
-                if (lifeLeechInstance != null && lifeLeechInstance.getValue() > 0) {
-                    double lifeLeechPercent = lifeLeechInstance.getValue();
-                    double leechCap = leechCapInstance != null ? leechCapInstance.getValue() : 0.0D;
+                if (lifestealInstance != null && lifestealInstance.getValue() > 0) {
+                    double lifestealPercent = lifestealInstance.getValue();
+                    double lifestealCap = lifestealCapInstance != null ? lifestealCapInstance.getValue() : 0.0D;
                     
                     float damageDealt = event.getAmount();
-                    float healAmount = (float) (damageDealt * lifeLeechPercent);
+                    float healAmount = (float) (damageDealt * lifestealPercent);
                     
-                    if (leechCap > 0) {
-                        healAmount = Math.min(healAmount, (float) leechCap);
+                    if (lifestealCap > 0) {
+                        healAmount = Math.min(healAmount, (float) lifestealCap);
                     }
                     
                     if (healAmount > 0) {
@@ -78,12 +79,6 @@ public class LifeLeechHandler {
     @SubscribeEvent(priority = EventPriority.LOW)
     public static void onLivingHeal(LivingHealEvent event) {
         if (isSpellHealing) {
-            double spellMultiplier = ModConfig.COMMON.lifeLeechSpellMultiplier.get();
-            if (spellMultiplier <= 0) {
-                event.setCanceled(true);
-            } else if (spellMultiplier != 1.0) {
-                event.setAmount(event.getAmount() * (float) spellMultiplier);
-            }
             isSpellHealing = false;
         }
     }
@@ -95,19 +90,18 @@ public class LifeLeechHandler {
         }
         
         if (event.getSpellDamageSource() != null && event.getSpellDamageSource().getEntity() instanceof LivingEntity attacker) {
-            AttributeInstance lifeLeechInstance = attacker.getAttribute(ModAttributes.LIFE_LEECH.get());
-            AttributeInstance leechCapInstance = attacker.getAttribute(ModAttributes.LEECH_CAP.get());
+            AttributeInstance spellLeechInstance = attacker.getAttribute(ModAttributes.SPELL_LEECH.get());
+            AttributeInstance spellLeechCapInstance = attacker.getAttribute(ModAttributes.SPELL_LEECH_CAP.get());
             
-            if (lifeLeechInstance != null && lifeLeechInstance.getValue() > 0) {
-                double lifeLeechPercent = lifeLeechInstance.getValue();
-                double leechCap = leechCapInstance != null ? leechCapInstance.getValue() : 0.0D;
+            if (spellLeechInstance != null && spellLeechInstance.getValue() > 0) {
+                double spellLeechPercent = spellLeechInstance.getValue();
+                double spellLeechCap = spellLeechCapInstance != null ? spellLeechCapInstance.getValue() : 0.0D;
                 
                 float damageDealt = event.getAmount();
-                double spellMultiplier = ModConfig.COMMON.lifeLeechSpellMultiplier.get();
-                float healAmount = (float) (damageDealt * lifeLeechPercent * spellMultiplier);
+                float healAmount = (float) (damageDealt * spellLeechPercent);
                 
-                if (leechCap > 0) {
-                    healAmount = Math.min(healAmount, (float) leechCap);
+                if (spellLeechCap > 0) {
+                    healAmount = Math.min(healAmount, (float) spellLeechCap);
                 }
                 
                 if (healAmount > 0) {
@@ -116,4 +110,5 @@ public class LifeLeechHandler {
             }
         }
     }
+
 }

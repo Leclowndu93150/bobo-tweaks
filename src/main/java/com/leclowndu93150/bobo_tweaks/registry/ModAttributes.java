@@ -110,12 +110,26 @@ public class ModAttributes {
     public static final RegistryObject<Attribute> ELDRITCH_CAST_TIME_REDUCTION = ATTRIBUTES.register("eldritch_cast_time_reduction",
         () -> new RangedAttribute("attribute." + BoboTweaks.MODID + ".eldritch_cast_time_reduction", 1.0D, 0.0D, 10.0D).setSyncable(true));
     
-    // Life Leech Attributes
+    // Leech Attributes
     public static final RegistryObject<Attribute> LIFE_LEECH = ATTRIBUTES.register("life_leech",
         () -> new RangedAttribute("attribute." + BoboTweaks.MODID + ".life_leech", 0.0D, 0.0D, 1.0D).setSyncable(true));
     
     public static final RegistryObject<Attribute> LEECH_CAP = ATTRIBUTES.register("leech_cap",
         () -> new RangedAttribute("attribute." + BoboTweaks.MODID + ".leech_cap", 0.0D, 0.0D, 1024.0D).setSyncable(true));
+    
+    // Spell Leech Attributes (renamed from Life Leech for spells only)
+    public static final RegistryObject<Attribute> SPELL_LEECH = ATTRIBUTES.register("spell_leech",
+        () -> new RangedAttribute("attribute." + BoboTweaks.MODID + ".spell_leech", 0.0D, 0.0D, 1.0D).setSyncable(true));
+    
+    public static final RegistryObject<Attribute> SPELL_LEECH_CAP = ATTRIBUTES.register("spell_leech_cap",
+        () -> new RangedAttribute("attribute." + BoboTweaks.MODID + ".spell_leech_cap", 0.0D, 0.0D, 1024.0D).setSyncable(true));
+    
+    // Lifesteal Attributes (for melee/ranged attacks)
+    public static final RegistryObject<Attribute> LIFESTEAL = ATTRIBUTES.register("lifesteal",
+        () -> new RangedAttribute("attribute." + BoboTweaks.MODID + ".lifesteal", 0.0D, 0.0D, 1.0D).setSyncable(true));
+    
+    public static final RegistryObject<Attribute> LIFESTEAL_CAP = ATTRIBUTES.register("lifesteal_cap",
+        () -> new RangedAttribute("attribute." + BoboTweaks.MODID + ".lifesteal_cap", 0.0D, 0.0D, 1024.0D).setSyncable(true));
     
     public static void register(IEventBus eventBus) {
         ATTRIBUTES.register(eventBus);

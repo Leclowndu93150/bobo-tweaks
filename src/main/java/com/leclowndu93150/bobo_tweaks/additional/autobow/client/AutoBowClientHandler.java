@@ -1,6 +1,7 @@
 package com.leclowndu93150.bobo_tweaks.additional.autobow.client;
 
 import com.leclowndu93150.bobo_tweaks.additional.autobow.config.AutoBowConfig;
+import com.leclowndu93150.bobo_tweaks.additional.autobow.compat.MoreCrossbowsCompat;
 import com.leclowndu93150.bobo_tweaks.network.ModNetworking;
 import com.leclowndu93150.bobo_tweaks.network.packet.AutoBowReleasePacket;
 import com.leclowndu93150.bobo_tweaks.network.packet.AutoCrossbowReleasePacket;
@@ -25,7 +26,7 @@ public class AutoBowClientHandler {
     private static boolean shouldIgnoreRightClick = false;
     
     private enum ItemType {
-        NONE, BOW, CROSSBOW
+        NONE, BOW, CROSSBOW, MOD_CROSSBOW
     }
     
     @SubscribeEvent
@@ -45,6 +46,8 @@ public class AutoBowClientHandler {
                 handleBowAutoShoot(mc.player, stack, activeHand);
             } else if (currentItemType == ItemType.CROSSBOW && stack.getItem() instanceof CrossbowItem) {
                 handleCrossbowAutoShoot(mc.player, stack, activeHand);
+            } else if (currentItemType == ItemType.MOD_CROSSBOW && MoreCrossbowsCompat.isModCrossbow(stack)) {
+                handleModCrossbowAutoShoot(mc.player, stack, activeHand);
             } else {
                 reset();
             }
@@ -128,6 +131,13 @@ public class AutoBowClientHandler {
         if (!AutoBowConfig.VALUES.autoBowEnabled.get() || shouldIgnoreRightClick) return;
         
         ItemStack stack = player.getItemInHand(hand);
+        
+        // Check if it's a mod crossbow first
+        if (MoreCrossbowsCompat.isModCrossbow(stack)) {
+            handleModCrossbowUseStart(player, hand, stack);
+            return;
+        }
+        
         if (!(stack.getItem() instanceof CrossbowItem)) {
             return;
         }
@@ -154,7 +164,47 @@ public class AutoBowClientHandler {
         }
     }
     
+    public static void handleModCrossbowUseStart(Player player, InteractionHand hand, ItemStack stack) {
+        if (currentItemType != ItemType.MOD_CROSSBOW) {
+            resetWeaponState();
+        }
+        
+        activeHand = hand;
+        currentItemType = ItemType.MOD_CROSSBOW;
+        
+        if (!MoreCrossbowsCompat.isModCrossbowCharged(stack)) {
+            crossbowCharging = true;
+            crossbowChargeTicks = 0;
+            crossbowMaxChargeTime = MoreCrossbowsCompat.getModCrossbowChargeDuration(stack);
+        } else {
+            if (isRightClickHeld) {
+                Minecraft.getInstance().execute(() -> {
+                    if (isRightClickHeld && player.isAlive()) {
+                        ModNetworking.sendToServer(new AutoCrossbowReleasePacket(hand, 0));
+                    }
+                });
+            }
+        }
+    }
+    
     public static void onCrossbowShot(Player player, InteractionHand hand) {
+        if (!AutoBowConfig.VALUES.autoBowEnabled.get()) return;
+        
+        if (isRightClickHeld && activeHand == hand) {
+            shouldIgnoreRightClick = true;
+            
+            Minecraft.getInstance().execute(() -> {
+                if (isRightClickHeld && player.isAlive() && activeHand != null) {
+                    shouldIgnoreRightClick = false;
+                    crossbowCharging = true;
+                    crossbowChargeTicks = 0;
+                    player.startUsingItem(activeHand);
+                }
+            });
+        }
+    }
+    
+    public static void onModCrossbowShot(Player player, InteractionHand hand) {
         if (!AutoBowConfig.VALUES.autoBowEnabled.get()) return;
         
         if (isRightClickHeld && activeHand == hand) {
@@ -189,6 +239,24 @@ public class AutoBowClientHandler {
             }
             
             if (crossbowChargeTicks >= crossbowMaxChargeTime && player.isUsingItem()) {
+                ModNetworking.sendToServer(new AutoCrossbowReleasePacket(hand, crossbowChargeTicks));
+                crossbowCharging = false;
+                crossbowChargeTicks = 0;
+            }
+        }
+    }
+    
+    private static void handleModCrossbowAutoShoot(Player player, ItemStack stack, InteractionHand hand) {
+        if (crossbowCharging && !MoreCrossbowsCompat.isModCrossbowCharged(stack)) {
+            crossbowChargeTicks++;
+            
+            if (!player.isUsingItem() && isRightClickHeld) {
+                player.startUsingItem(hand);
+            }
+            
+            // Check if crossbow is fully charged
+            float power = MoreCrossbowsCompat.getModCrossbowPowerForTime(stack, crossbowChargeTicks);
+            if ((power >= 1.0f || crossbowChargeTicks >= crossbowMaxChargeTime) && player.isUsingItem()) {
                 ModNetworking.sendToServer(new AutoCrossbowReleasePacket(hand, crossbowChargeTicks));
                 crossbowCharging = false;
                 crossbowChargeTicks = 0;

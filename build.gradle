@@ -152,7 +152,11 @@ dependencies {
     implementation fg.deobf("curse.maven:caelus-308989:5281700")
     implementation fg.deobf("curse.maven:playeranimator-658587:4587214")
     implementation fg.deobf("curse.maven:baguettelib-1264423:6523425")
+    compileOnly fg.deobf(files("libs/MoreCrossbows-CJ-forge-mc-1.20-2.0.1.jar"))
 
+
+    runtimeOnly fg.deobf("curse.maven:architectury-api-419699:5137938")
+    runtimeOnly fg.deobf("curse.maven:config-api-968816:5467942")
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 
 }

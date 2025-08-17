@@ -87,7 +87,7 @@ public class StatusOfflineEffect extends MobEffect {
         double damageAmplifier = damageAmpInstance != null ? damageAmpInstance.getValue() : 0.0D;
         
         float baseDamage = getBaseMagicDamage(amplifier);
-        float statusBonus = getClearedStatusBonus() * clearedCount;
+        float statusBonus = getClearedStatusBonus(amplifier) * clearedCount;
         float totalDamage = (baseDamage + statusBonus) * (float)(1.0 + damageAmplifier);
         
         if (totalDamage > 0) {
@@ -106,8 +106,8 @@ public class StatusOfflineEffect extends MobEffect {
         return ModConfig.COMMON.statusOfflineBaseDamage.get().floatValue() * (amplifier + 1);
     }
     
-    private static float getClearedStatusBonus() {
-        return ModConfig.COMMON.statusOfflineStatusBonus.get().floatValue();
+    private static float getClearedStatusBonus(int amplifier) {
+        return ModConfig.COMMON.statusOfflineStatusBonus.get().floatValue() * (amplifier + 1);
     }
     
     @Override

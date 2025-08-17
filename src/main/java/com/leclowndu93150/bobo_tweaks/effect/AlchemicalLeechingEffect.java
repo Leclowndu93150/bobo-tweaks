@@ -12,7 +12,8 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import java.util.UUID;
 
 public class AlchemicalLeechingEffect extends MobEffect {
-    private static final UUID LIFE_LEECH_UUID = UUID.fromString("8c2f4d6e-1a3b-4c5d-9e7f-2b8a4d6c8e9f");
+    private static final UUID SPELL_LEECH_UUID = UUID.fromString("8c2f4d6e-1a3b-4c5d-9e7f-2b8a4d6c8e9f");
+    private static final UUID LIFESTEAL_UUID = UUID.fromString("9d3e5f7a-2c4b-5d6e-8f9a-3c5b7d9e1f2a");
     
     public AlchemicalLeechingEffect() {
         super(MobEffectCategory.BENEFICIAL, 0x8B0000);
@@ -22,21 +23,36 @@ public class AlchemicalLeechingEffect extends MobEffect {
     public void addAttributeModifiers(LivingEntity entity, AttributeMap attributeMap, int amplifier) {
         super.addAttributeModifiers(entity, attributeMap, amplifier);
         
-        AttributeInstance lifeLeechInstance = entity.getAttribute(ModAttributes.LIFE_LEECH.get());
+        AttributeInstance spellLeechInstance = entity.getAttribute(ModAttributes.SPELL_LEECH.get());
+        AttributeInstance lifestealInstance = entity.getAttribute(ModAttributes.LIFESTEAL.get());
         AttributeInstance alchemicalBoostInstance = entity.getAttribute(ModAttributes.ALCHEMICAL_BOOST.get());
         
-        if (lifeLeechInstance != null) {
-            double alchemicalBoost = alchemicalBoostInstance != null ? alchemicalBoostInstance.getValue() : 0.0D;
+        double alchemicalBoost = alchemicalBoostInstance != null ? alchemicalBoostInstance.getValue() : 0.0D;
+        
+        if (spellLeechInstance != null) {
+            float baseSpellLeech = getBaseSpellLeech(amplifier);
+            float spellAlchemicalBonus = (float) (getSpellLeechAlchemicalScaling(amplifier) * alchemicalBoost);
+            float totalSpellLeech = baseSpellLeech + spellAlchemicalBonus;
             
-            float baseLeech = getBaseLifeLeech(amplifier);
-            float alchemicalBonus = (float) (getAlchemicalScaling(amplifier) * alchemicalBoost);
-            float totalLeech = baseLeech + alchemicalBonus;
+            spellLeechInstance.removeModifier(SPELL_LEECH_UUID);
+            spellLeechInstance.addTransientModifier(new AttributeModifier(
+                SPELL_LEECH_UUID,
+                "Alchemical spell leeching",
+                totalSpellLeech,
+                AttributeModifier.Operation.ADDITION
+            ));
+        }
+        
+        if (lifestealInstance != null) {
+            float baseLifesteal = getBaseLifesteal(amplifier);
+            float lifestealAlchemicalBonus = (float) (getLifestealAlchemicalScaling(amplifier) * alchemicalBoost);
+            float totalLifesteal = baseLifesteal + lifestealAlchemicalBonus;
             
-            lifeLeechInstance.removeModifier(LIFE_LEECH_UUID);
-            lifeLeechInstance.addTransientModifier(new AttributeModifier(
-                LIFE_LEECH_UUID,
-                "Alchemical leeching",
-                totalLeech,
+            lifestealInstance.removeModifier(LIFESTEAL_UUID);
+            lifestealInstance.addTransientModifier(new AttributeModifier(
+                LIFESTEAL_UUID,
+                "Alchemical lifesteal",
+                totalLifesteal,
                 AttributeModifier.Operation.ADDITION
             ));
         }
@@ -46,18 +62,31 @@ public class AlchemicalLeechingEffect extends MobEffect {
     public void removeAttributeModifiers(LivingEntity entity, AttributeMap attributeMap, int amplifier) {
         super.removeAttributeModifiers(entity, attributeMap, amplifier);
         
-        AttributeInstance lifeLeechInstance = entity.getAttribute(ModAttributes.LIFE_LEECH.get());
-        if (lifeLeechInstance != null) {
-            lifeLeechInstance.removeModifier(LIFE_LEECH_UUID);
+        AttributeInstance spellLeechInstance = entity.getAttribute(ModAttributes.SPELL_LEECH.get());
+        if (spellLeechInstance != null) {
+            spellLeechInstance.removeModifier(SPELL_LEECH_UUID);
+        }
+        
+        AttributeInstance lifestealInstance = entity.getAttribute(ModAttributes.LIFESTEAL.get());
+        if (lifestealInstance != null) {
+            lifestealInstance.removeModifier(LIFESTEAL_UUID);
         }
     }
     
-    private float getBaseLifeLeech(int amplifier) {
+    private float getBaseSpellLeech(int amplifier) {
         return ModConfig.COMMON.alchemicalLeechingBase.get().floatValue() * (amplifier + 1);
     }
     
-    private float getAlchemicalScaling(int amplifier) {
+    private float getSpellLeechAlchemicalScaling(int amplifier) {
         return ModConfig.COMMON.alchemicalLeechingScaling.get().floatValue() * (amplifier + 1);
+    }
+    
+    private float getBaseLifesteal(int amplifier) {
+        return ModConfig.COMMON.alchemicalLeechingBase.get().floatValue() * (amplifier + 1);
+    }
+    
+    private float getLifestealAlchemicalScaling(int amplifier) {
+        return ModConfig.COMMON.alchemicalLifestealScaling.get().floatValue() * (amplifier + 1);
     }
     
     @Override

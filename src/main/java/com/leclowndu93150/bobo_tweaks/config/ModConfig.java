@@ -77,6 +77,7 @@ public class ModConfig {
         // Alchemical Leeching Effect
         public final ForgeConfigSpec.DoubleValue alchemicalLeechingBase;
         public final ForgeConfigSpec.DoubleValue alchemicalLeechingScaling;
+        public final ForgeConfigSpec.DoubleValue alchemicalLifestealScaling;
         
         // Mana Drain Effect
         public final ForgeConfigSpec.DoubleValue manaDrainAmount;
@@ -258,11 +259,14 @@ public class ModConfig {
             
             builder.push("alchemical_leeching_effect");
             alchemicalLeechingBase = builder
-                .comment("Base life leech percentage per level (0.05 = 5%)")
+                .comment("Base spell leech and lifesteal percentage per level (0.05 = 5%)")
                 .defineInRange("base_leech", 0.05, 0.01, 0.5);
             alchemicalLeechingScaling = builder
-                .comment("Additional life leech per alchemical boost point per level (0.01 = 1%)")
-                .defineInRange("alchemical_scaling", 0.01, 0.001, 0.1);
+                .comment("Additional spell leech per alchemical boost point per level (0.01 = 1%)")
+                .defineInRange("spell_leech_scaling", 0.01, 0.001, 0.1);
+            alchemicalLifestealScaling = builder
+                .comment("Additional lifesteal per alchemical boost point per level (0.01 = 1%)")
+                .defineInRange("lifesteal_scaling", 0.01, 0.001, 0.1);
             builder.pop();
             
             builder.push("mana_drain_effect");

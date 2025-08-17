@@ -6,9 +6,9 @@ import com.leclowndu93150.bobo_tweaks.additional.itempreservation.ItemPreservati
 import com.leclowndu93150.bobo_tweaks.additional.effectimmunity.EffectImmunityRegistration;
 import com.leclowndu93150.bobo_tweaks.additional.attackeffects.AttackEffectsRegistration;
 import com.leclowndu93150.bobo_tweaks.additional.exclusiveitems.ExclusiveItemsRegistration;
-import com.leclowndu93150.bobo_tweaks.additional.exclusiveitems.config.ExclusiveItemsConfig;
 import com.leclowndu93150.bobo_tweaks.config.ModConfig;
 import com.leclowndu93150.bobo_tweaks.config.DamageSourceConfig;
+import com.leclowndu93150.bobo_tweaks.additional.smithing.SmithingBlacklistRegistration;
 import com.leclowndu93150.bobo_tweaks.event.ModEventHandler;
 import com.leclowndu93150.bobo_tweaks.network.ModNetworking;
 import com.leclowndu93150.bobo_tweaks.registry.ModAttributes;
@@ -54,13 +54,13 @@ public class BoboTweaks {
 
         ModLoadingContext.get().registerConfig(Type.COMMON, ModConfig.COMMON_SPEC);
         ModLoadingContext.get().registerConfig(Type.CLIENT, ModConfig.CLIENT_SPEC);
-        ModLoadingContext.get().registerConfig(Type.COMMON, ExclusiveItemsConfig.SPEC, "bobo_tweaks-exclusive_items.toml");
 
         AutoBowRegistration.init();
         ItemPreservationRegistration.init();
         EffectImmunityRegistration.init();
         AttackEffectsRegistration.init();
         ExclusiveItemsRegistration.init();
+        SmithingBlacklistRegistration.init();
 
         modEventBus.addListener(this::commonSetup);
     }
