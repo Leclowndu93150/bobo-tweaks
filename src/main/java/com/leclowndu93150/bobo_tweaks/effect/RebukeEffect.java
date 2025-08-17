@@ -2,14 +2,17 @@ package com.leclowndu93150.bobo_tweaks.effect;
 
 import com.leclowndu93150.bobo_tweaks.BoboTweaks;
 import com.leclowndu93150.bobo_tweaks.config.ModConfig;
+import com.leclowndu93150.bobo_tweaks.registry.ModPotions;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
+import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeMap;
+import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -52,6 +55,10 @@ public class RebukeEffect extends MobEffect {
         LivingEntity target = event.getEntity();
         
         if (event.getSource().getEntity() instanceof LivingEntity attacker) {
+            if (areTeammates(target, attacker)) {
+                return;
+            }
+            
             RebukeData data = rebukeDataMap.get(target.getUUID());
             
             if (data != null && data.remainingNegations > 0) {
@@ -71,6 +78,11 @@ public class RebukeEffect extends MobEffect {
                 
                 if (data.remainingNegations <= 0) {
                     rebukeDataMap.remove(target.getUUID());
+                    
+                    MobEffectInstance rebukeInstance = target.getEffect(ModPotions.REBUKE.get());
+                    if (rebukeInstance != null) {
+                        target.removeEffect(ModPotions.REBUKE.get());
+                    }
                 }
             }
         }
@@ -82,6 +94,14 @@ public class RebukeEffect extends MobEffect {
     
     private static float getMaxHpPercentage(int amplifier) {
         return ModConfig.COMMON.rebukeMaxHpPercentage.get().floatValue() * (amplifier + 1);
+    }
+    
+    private static boolean areTeammates(LivingEntity target, LivingEntity attacker) {
+        if (target instanceof Player targetPlayer && attacker instanceof Player attackerPlayer) {
+            return targetPlayer.getTeam() != null && 
+                   targetPlayer.getTeam().equals(attackerPlayer.getTeam());
+        }
+        return false;
     }
     
     @Override

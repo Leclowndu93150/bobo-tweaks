@@ -3,12 +3,14 @@ package com.leclowndu93150.bobo_tweaks.effect;
 import com.leclowndu93150.bobo_tweaks.BoboTweaks;
 import com.leclowndu93150.bobo_tweaks.config.ModConfig;
 import com.leclowndu93150.bobo_tweaks.registry.ModAttributes;
+import com.leclowndu93150.bobo_tweaks.registry.ModPotions;
 import com.leclowndu93150.bobo_tweaks.util.ModDamageSources;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
+import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeMap;
@@ -138,6 +140,11 @@ public class FuryEffect extends MobEffect {
                         } catch (Exception e) {
                             BoboTweaks.getLogger().warn("Failed to remove fire damage attribute", e);
                         }
+                    }
+                    
+                    MobEffectInstance furyInstance = attacker.getEffect(ModPotions.FURY.get());
+                    if (furyInstance != null) {
+                        attacker.removeEffect(ModPotions.FURY.get());
                     }
                 }
             }

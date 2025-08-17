@@ -78,23 +78,26 @@ public class ModConfig {
         public final ForgeConfigSpec.DoubleValue alchemicalLeechingBase;
         public final ForgeConfigSpec.DoubleValue alchemicalLeechingScaling;
         
+        // Mana Drain Effect
+        public final ForgeConfigSpec.DoubleValue manaDrainAmount;
+        
         CommonConfig(ForgeConfigSpec.Builder builder) {
             builder.push("life_drain");
             lifeDrainInterval = builder
                 .comment("Time interval in seconds between life drain damage ticks")
-                .defineInRange("interval", 6.0, 1.0, 60.0);
+                .defineInRange("interval", 6.0, 0.1, 600.0);
             lifeDrainPercentage = builder
                 .comment("Percentage of max health drained per tick (0.06 = 6%)")
-                .defineInRange("percentage", 0.06, 0.01, 1.0);
+                .defineInRange("percentage", 0.06, 0.001, 10.0);
             builder.pop();
             
             builder.push("regeneration");
             regenInterval = builder
                 .comment("Time interval in seconds between regeneration heal ticks")
-                .defineInRange("interval", 5.0, 1.0, 60.0);
+                .defineInRange("interval", 5.0, 0.1, 600.0);
             regenerationHealAmount = builder
                 .comment("Amount of health healed per regeneration level per tick (1.0 = 0.5 hearts)")
-                .defineInRange("heal_amount", 1.0, 0.0, 10.0);
+                .defineInRange("heal_amount", 1.0, 0.0, 1000.0);
             builder.pop();
             
             builder.push("temperature");
@@ -112,7 +115,7 @@ public class ModConfig {
             builder.push("guard_point");
             guardPointPercentage = builder
                 .comment("Percentage of max health converted to absorption per level (0.2 = 20%)")
-                .defineInRange("absorption_percentage", 0.2, 0.01, 2.0);
+                .defineInRange("absorption_percentage", 0.2, 0.001, 100.0);
             builder.pop();
             
             builder.push("the_warden");
@@ -205,28 +208,28 @@ public class ModConfig {
             builder.push("life_leech");
             lifeLeechSpellMultiplier = builder
                 .comment("Multiplier for life leech when using spell attacks (0.5 = 50% effectiveness)")
-                .defineInRange("spell_multiplier", 0.5, 0.0, 1.0);
+                .defineInRange("spell_multiplier", 0.5, 0.0, 100.0);
             builder.pop();
             
             builder.push("fury_effect");
             furyHealthDrainPercentage = builder
                 .comment("Percentage of current health drained per level (0.1 = 10%)")
-                .defineInRange("health_drain_percentage", 0.1, 0.01, 0.5);
+                .defineInRange("health_drain_percentage", 0.1, 0.001, 10.0);
             furyFireDamageMultiplier = builder
                 .comment("Percentage of lost HP added to fire damage (0.5 = 50%)")
-                .defineInRange("fire_damage_multiplier", 0.5, 0.1, 2.0);
+                .defineInRange("fire_damage_multiplier", 0.5, 0.01, 100.0);
             furyAttackScaling = builder
                 .comment("Scaling factor for number of attacks (0.5 = 0.5 attacks per damage amplifier)")
-                .defineInRange("attack_scaling", 0.5, 0.1, 2.0);
+                .defineInRange("attack_scaling", 0.5, 0.01, 100.0);
             builder.pop();
             
             builder.push("rebuke_effect");
             rebukeBaseDamage = builder
                 .comment("Base flat damage dealt to attacker per level")
-                .defineInRange("base_damage", 5.0, 1.0, 50.0);
+                .defineInRange("base_damage", 5.0, 0.1, 10000.0);
             rebukeMaxHpPercentage = builder
                 .comment("Percentage of attacker's max HP dealt as damage per level (0.1 = 10%)")
-                .defineInRange("max_hp_percentage", 0.1, 0.01, 0.5);
+                .defineInRange("max_hp_percentage", 0.1, 0.001, 100.0);
             builder.pop();
             
             builder.push("status_offline_effect");
@@ -260,6 +263,12 @@ public class ModConfig {
             alchemicalLeechingScaling = builder
                 .comment("Additional life leech per alchemical boost point per level (0.01 = 1%)")
                 .defineInRange("alchemical_scaling", 0.01, 0.001, 0.1);
+            builder.pop();
+            
+            builder.push("mana_drain_effect");
+            manaDrainAmount = builder
+                .comment("Amount of mana drained per level")
+                .defineInRange("mana_drain_amount", 10.0, 1.0, 1000.0);
             builder.pop();
         }
     }

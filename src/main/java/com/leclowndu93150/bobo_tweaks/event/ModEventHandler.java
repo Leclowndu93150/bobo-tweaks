@@ -2,6 +2,7 @@ package com.leclowndu93150.bobo_tweaks.event;
 
 import com.leclowndu93150.bobo_tweaks.BoboTweaks;
 import com.leclowndu93150.bobo_tweaks.config.DamageSourceConfig;
+import com.leclowndu93150.bobo_tweaks.config.ModConfig;
 import com.leclowndu93150.bobo_tweaks.registry.ModAttributes;
 import com.leclowndu93150.bobo_tweaks.registry.ModDamageTypes;
 import com.leclowndu93150.bobo_tweaks.registry.ModPotions;
@@ -106,7 +107,7 @@ public class ModEventHandler {
                 try {
                     var magicData = MagicData.getPlayerMagicData(entity);
                     float currentMana = magicData.getMana();
-                    float manaToDrain = 10.0f * (amplifier + 1);
+                    float manaToDrain = ModConfig.COMMON.manaDrainAmount.get().floatValue() * (amplifier + 1);
                     
                     magicData.setMana(Math.max(0, currentMana - manaToDrain));
                     
