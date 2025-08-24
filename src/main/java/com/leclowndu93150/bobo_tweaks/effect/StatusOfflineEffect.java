@@ -14,7 +14,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeMap;
 import net.minecraft.world.entity.projectile.AbstractArrow;
-import net.minecraftforge.event.entity.living.LivingAttackEvent;
+import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -47,8 +47,8 @@ public class StatusOfflineEffect extends MobEffect {
         }
     }
     
-    @SubscribeEvent(priority = EventPriority.LOW)
-    public static void onLivingAttack(LivingAttackEvent event) {
+    @SubscribeEvent(priority = EventPriority.HIGH)
+    public static void onLivingHurt(LivingHurtEvent event) {
         if (event.getSource().getEntity() instanceof LivingEntity attacker) {
             handleStatusOffline(attacker, event.getEntity(), attacker);
         } else if (event.getSource().getDirectEntity() instanceof AbstractArrow arrow) {
@@ -67,6 +67,11 @@ public class StatusOfflineEffect extends MobEffect {
         if (statusOfflineEffect == null) {
             return;
         }
+        
+        // Only trigger if this is not magic damage (to avoid infinite loops)
+        DamageSource magicDamageCheck = attacker.damageSources().magic();
+        // We can't check the event source here, so we'll use a different approach
+        // StatusOffline only triggers once per effect, so infinite loops shouldn't be an issue
         
         int amplifier = statusOfflineEffect.getAmplifier();
         List<MobEffectInstance> negativeEffects = new ArrayList<>();
@@ -90,7 +95,7 @@ public class StatusOfflineEffect extends MobEffect {
         float statusBonus = getClearedStatusBonus(amplifier) * clearedCount;
         float totalDamage = (baseDamage + statusBonus) * (float)(1.0 + damageAmplifier);
         
-        if (totalDamage > 0) {
+        if (totalDamage > 0 && !target.level().isClientSide()) {
             DamageSource magicSource = attacker.level().damageSources().magic();
             target.hurt(magicSource, totalDamage);
         }

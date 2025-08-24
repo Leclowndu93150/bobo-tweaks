@@ -72,6 +72,10 @@ public class ModEventHandler {
                     event.add(entityType, ModAttributes.ELDRITCH_CAST_TIME_REDUCTION.get());
                     event.add(entityType, ModAttributes.LIFE_LEECH.get());
                     event.add(entityType, ModAttributes.LEECH_CAP.get());
+                    event.add(entityType, ModAttributes.SPELL_LEECH.get());
+                    event.add(entityType, ModAttributes.SPELL_LEECH_CAP.get());
+                    event.add(entityType, ModAttributes.LIFESTEAL.get());
+                    event.add(entityType, ModAttributes.LIFESTEAL_CAP.get());
                 }
             }
         }

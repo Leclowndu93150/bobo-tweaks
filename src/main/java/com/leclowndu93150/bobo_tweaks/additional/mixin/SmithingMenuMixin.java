@@ -1,7 +1,6 @@
 package com.leclowndu93150.bobo_tweaks.additional.mixin;
 
 import com.leclowndu93150.bobo_tweaks.additional.smithing.SmithingBlacklistManager;
-import com.leclowndu93150.bobo_tweaks.additional.smithing.config.SmithingBlacklistConfig;
 import net.minecraft.world.inventory.ItemCombinerMenuSlotDefinition;
 import net.minecraft.world.inventory.SmithingMenu;
 import net.minecraft.world.item.ItemStack;
@@ -24,15 +23,15 @@ public class SmithingMenuMixin {
     
     @Inject(method = "createInputSlotDefinitions", at = @At("RETURN"), cancellable = true)
     private void injectBlacklistChecks(CallbackInfoReturnable<ItemCombinerMenuSlotDefinition> cir) {
-        if (!SmithingBlacklistConfig.COMMON.enableSmithingBlacklist.get()) {
+        if (!SmithingBlacklistManager.isEnabled()) {
             return;
         }
-
+        
         ItemCombinerMenuSlotDefinition.Builder builder = ItemCombinerMenuSlotDefinition.create();
         
         // Template slot (slot 0) - 8, 48
         builder.withSlot(0, 8, 48, (itemStack) -> {
-            if (SmithingBlacklistConfig.COMMON.preventBlacklistedTemplates.get() && 
+            if (SmithingBlacklistManager.shouldCheckTemplates() && 
                 SmithingBlacklistManager.isItemBlacklisted(itemStack)) {
                 return false;
             }
@@ -42,7 +41,7 @@ public class SmithingMenuMixin {
         
         // Base slot (slot 1) - 26, 48  
         builder.withSlot(1, 26, 48, (itemStack) -> {
-            if (SmithingBlacklistConfig.COMMON.preventBlacklistedBase.get() && 
+            if (SmithingBlacklistManager.shouldCheckBase() && 
                 SmithingBlacklistManager.isItemBlacklisted(itemStack)) {
                 return false;
             }
@@ -52,7 +51,7 @@ public class SmithingMenuMixin {
         
         // Addition slot (slot 2) - 44, 48
         builder.withSlot(2, 44, 48, (itemStack) -> {
-            if (SmithingBlacklistConfig.COMMON.preventBlacklistedAddition.get() && 
+            if (SmithingBlacklistManager.shouldCheckAddition() && 
                 SmithingBlacklistManager.isItemBlacklisted(itemStack)) {
                 return false;
             }
@@ -68,11 +67,8 @@ public class SmithingMenuMixin {
     
     @Inject(method = "canMoveIntoInputSlots", at = @At("HEAD"), cancellable = true)
     private void preventBlacklistedItemMovement(ItemStack itemStack, CallbackInfoReturnable<Boolean> cir) {
-        if (!SmithingBlacklistConfig.COMMON.enableSmithingBlacklist.get()) {
-            return;
-        }
-        
-        if (SmithingBlacklistManager.isItemBlacklisted(itemStack)) {
+        if (SmithingBlacklistManager.isEnabled() && 
+            SmithingBlacklistManager.isItemBlacklisted(itemStack)) {
             cir.setReturnValue(false);
         }
     }

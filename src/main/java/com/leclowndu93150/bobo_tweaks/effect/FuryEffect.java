@@ -14,10 +14,9 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeMap;
-import net.minecraft.world.entity.ai.attributes.AttributeModifier;
-import net.minecraftforge.event.entity.living.LivingAttackEvent;
+import net.minecraftforge.event.entity.living.LivingHurtEvent;
+import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.common.Mod;
 
 import java.util.HashMap;
@@ -27,7 +26,6 @@ import java.util.UUID;
 @Mod.EventBusSubscriber(modid = BoboTweaks.MODID)
 public class FuryEffect extends MobEffect {
     private static final Map<UUID, FuryData> furyDataMap = new HashMap<>();
-    private static final UUID MAGIC_DAMAGE_UUID = UUID.fromString("7a3f7c4e-9f1b-4c2d-8e3a-1b9c8d7e6f5a");
     
     public FuryEffect() {
         super(MobEffectCategory.NEUTRAL, 0xFF4500);
@@ -57,14 +55,6 @@ public class FuryEffect extends MobEffect {
                 
                 FuryData data = new FuryData(magicDamageBonus, attackCount);
                 furyDataMap.put(entity.getUUID(), data);
-                
-                if (ModList.get().isLoaded("attributeslib")) {
-                    try {
-                        applyMagicDamageAttribute(entity, magicDamageBonus);
-                    } catch (Exception e) {
-                        BoboTweaks.getLogger().warn("Failed to apply magic damage attribute", e);
-                    }
-                }
             }
         }
     }
@@ -75,76 +65,34 @@ public class FuryEffect extends MobEffect {
         
         if (!entity.level().isClientSide()) {
             furyDataMap.remove(entity.getUUID());
-            
-            if (ModList.get().isLoaded("attributeslib")) {
-                try {
-                    removeMagicDamageAttribute(entity);
-                } catch (Exception e) {
-                    BoboTweaks.getLogger().warn("Failed to remove magic damage attribute", e);
-                }
-            }
         }
     }
     
-    private void applyMagicDamageAttribute(LivingEntity entity, float magicDamageBonus) {
-        try {
-            var magicDamageAttribute = net.minecraftforge.registries.ForgeRegistries.ATTRIBUTES
-                .getValue(new net.minecraft.resources.ResourceLocation("attributeslib", "magic_damage"));
-            if (magicDamageAttribute != null) {
-                AttributeInstance instance = entity.getAttribute(magicDamageAttribute);
-                if (instance != null) {
-                    instance.removeModifier(MAGIC_DAMAGE_UUID);
-                    instance.addTransientModifier(new AttributeModifier(
-                        MAGIC_DAMAGE_UUID,
-                        "Fury magic damage",
-                        magicDamageBonus,
-                        AttributeModifier.Operation.ADDITION
-                    ));
-                }
-            }
-        } catch (Exception e) {
-            BoboTweaks.getLogger().warn("AttributesLib not available or magic damage attribute not found", e);
-        }
-    }
-    
-    private static void removeMagicDamageAttribute(LivingEntity entity) {
-        try {
-            var magicDamageAttribute = net.minecraftforge.registries.ForgeRegistries.ATTRIBUTES
-                .getValue(new net.minecraft.resources.ResourceLocation("attributeslib", "magic_damage"));
-            if (magicDamageAttribute != null) {
-                AttributeInstance instance = entity.getAttribute(magicDamageAttribute);
-                if (instance != null) {
-                    instance.removeModifier(MAGIC_DAMAGE_UUID);
-                }
-            }
-        } catch (Exception e) {
-            BoboTweaks.getLogger().warn("AttributesLib not available or magic damage attribute not found", e);
-        }
-    }
-    
-    @SubscribeEvent
-    public static void onLivingAttack(LivingAttackEvent event) {
+    @SubscribeEvent(priority = EventPriority.HIGH)
+    public static void onLivingHurt(LivingHurtEvent event) {
         if (event.getSource().getEntity() instanceof LivingEntity attacker) {
             FuryData data = furyDataMap.get(attacker.getUUID());
             if (data != null && data.remainingAttacks > 0) {
-                data.remainingAttacks--;
-                
-                attacker.level().playSound(null, attacker.getX(), attacker.getY(), attacker.getZ(),
-                    SoundEvents.GHAST_SHOOT, SoundSource.PLAYERS, 1.0F, 1.0F);
-                
-                if (data.remainingAttacks <= 0) {
-                    furyDataMap.remove(attacker.getUUID());
-                    if (ModList.get().isLoaded("attributeslib")) {
-                        try {
-                            removeMagicDamageAttribute(attacker);
-                        } catch (Exception e) {
-                            BoboTweaks.getLogger().warn("Failed to remove magic damage attribute", e);
+                DamageSource magicDamageCheck = attacker.damageSources().magic();
+                if (!event.getSource().type().equals(magicDamageCheck.type())) {
+                    LivingEntity target = event.getEntity();
+                    if (!target.level().isClientSide()) {
+                        DamageSource magicDamage = attacker.damageSources().magic();
+                        target.hurt(magicDamage, data.magicDamageBonus);
+
+                        attacker.level().playSound(null, attacker.getX(), attacker.getY(), attacker.getZ(),
+                            SoundEvents.GHAST_SHOOT, SoundSource.PLAYERS, 1.0F, 1.0F);
+                        
+                        data.remainingAttacks--;
+                        
+                        if (data.remainingAttacks <= 0) {
+                            furyDataMap.remove(attacker.getUUID());
+                            
+                            MobEffectInstance furyInstance = attacker.getEffect(ModPotions.FURY.get());
+                            if (furyInstance != null) {
+                                attacker.removeEffect(ModPotions.FURY.get());
+                            }
                         }
-                    }
-                    
-                    MobEffectInstance furyInstance = attacker.getEffect(ModPotions.FURY.get());
-                    if (furyInstance != null) {
-                        attacker.removeEffect(ModPotions.FURY.get());
                     }
                 }
             }

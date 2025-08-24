@@ -48,5 +48,6 @@
   "effect.bobo_tweaks.alchemical_leeching": "Alchemical Protocol: Leeching",
   "death.attack.life_drain": "%1$s withered away",
   "death.attack.hyperthermia": "%1$s succumbed to extreme heat",
-  "death.attack.hypothermia": "%1$s froze to death"
+  "death.attack.hypothermia": "%1$s froze to death",
+  "bobo_tweaks.villager.no_night_trading": "This villager refuses to trade at night. Come back in the morning!"
 }

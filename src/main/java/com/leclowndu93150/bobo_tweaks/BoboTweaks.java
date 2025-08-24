@@ -9,6 +9,7 @@ import com.leclowndu93150.bobo_tweaks.additional.exclusiveitems.ExclusiveItemsRe
 import com.leclowndu93150.bobo_tweaks.config.ModConfig;
 import com.leclowndu93150.bobo_tweaks.config.DamageSourceConfig;
 import com.leclowndu93150.bobo_tweaks.additional.smithing.SmithingBlacklistRegistration;
+import com.leclowndu93150.bobo_tweaks.additional.villager.VillagerModuleRegistration;
 import com.leclowndu93150.bobo_tweaks.event.ModEventHandler;
 import com.leclowndu93150.bobo_tweaks.network.ModNetworking;
 import com.leclowndu93150.bobo_tweaks.registry.ModAttributes;
@@ -18,13 +19,21 @@ import com.mojang.logging.LogUtils;
 import io.redspace.ironsspellbooks.api.events.SpellDamageEvent;
 import io.redspace.ironsspellbooks.api.events.SpellOnCastEvent;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.Brain;
+import net.minecraft.world.entity.ai.behavior.VillagerGoalPackages;
+import net.minecraft.world.entity.ai.memory.MemoryModuleType;
+import net.minecraft.world.entity.npc.AbstractVillager;
+import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.schedule.Activity;
 import net.minecraft.world.inventory.AnvilMenu;
 import net.minecraft.world.item.BowItem;
 import net.minecraft.world.item.CrossbowItem;
 import net.minecraft.world.item.EnchantedGoldenAppleItem;
 import net.minecraft.world.item.Items;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.world.item.trading.MerchantOffer;
+import net.minecraft.world.item.trading.MerchantOffers;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.living.MobEffectEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -61,6 +70,7 @@ public class BoboTweaks {
         AttackEffectsRegistration.init();
         ExclusiveItemsRegistration.init();
         SmithingBlacklistRegistration.init();
+        VillagerModuleRegistration.register();
 
         modEventBus.addListener(this::commonSetup);
     }
@@ -76,5 +86,4 @@ public class BoboTweaks {
     public static MinecraftServer getServer() {
         return ServerLifecycleHooks.getCurrentServer();
     }
-
 }

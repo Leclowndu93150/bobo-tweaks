@@ -10,7 +10,8 @@
     "AbsorptionEffectMixin",
     "MagicManagerMixin",
     "AbstractSpellCastTimeMixin",
-    "SmithingMenuMixin"
+    "SmithingMenuMixin",
+    "VillagerMixin"
   ],
   "client": [
     "BowItemMixin",
