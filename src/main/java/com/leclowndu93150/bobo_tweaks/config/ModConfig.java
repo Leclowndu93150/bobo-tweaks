@@ -82,6 +82,11 @@ public class ModConfig {
         // Mana Drain Effect
         public final ForgeConfigSpec.DoubleValue manaDrainAmount;
         
+        // Woodward Sentinel Effect
+        public final ForgeConfigSpec.DoubleValue woodwardSentinelHealingReduction;
+        public final ForgeConfigSpec.DoubleValue woodwardSentinelDistributedHealingMultiplier;
+        public final ForgeConfigSpec.DoubleValue woodwardSentinelHealCap;
+        
         CommonConfig(ForgeConfigSpec.Builder builder) {
             builder.push("life_drain");
             lifeDrainInterval = builder
@@ -273,6 +278,18 @@ public class ModConfig {
             manaDrainAmount = builder
                 .comment("Amount of mana drained per level")
                 .defineInRange("mana_drain_amount", 10.0, 1.0, 1000.0);
+            builder.pop();
+            
+            builder.push("woodward_sentinel_effect");
+            woodwardSentinelHealingReduction = builder
+                .comment("Percentage of healing reduced per level (0.5 = 50%)")
+                .defineInRange("healing_reduction", 0.5, 0.1, 1.0);
+            woodwardSentinelDistributedHealingMultiplier = builder
+                .comment("Multiplier for distributed healing per level (2.5 = 2.5x multiplier)")
+                .defineInRange("distributed_healing_multiplier", 2.5, 1.0, 10.0);
+            woodwardSentinelHealCap = builder
+                .comment("Maximum healing that can be distributed per teammate (0 = no cap)")
+                .defineInRange("heal_cap", 0.0, 0.0, 100.0);
             builder.pop();
         }
     }
