@@ -20,8 +20,6 @@ public class EffectImmunityHandler {
         String effectId = BuiltInRegistries.MOB_EFFECT.getKey(event.getEffectInstance().getEffect()).toString();
         String entityId = BuiltInRegistries.ENTITY_TYPE.getKey(event.getEntity().getType()).toString();
 
-        System.out.println("Checking effect immunity for entity: " + entityId + ", effect: " + effectId);
-
         // Check mob-specific immunities first (highest priority)
         List<String> mobImmunities = EffectImmunityConfig.getImmunitiesForMob(entityId);
         if (mobImmunities.contains(effectId)) {

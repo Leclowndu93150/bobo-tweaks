@@ -10,6 +10,7 @@ import com.leclowndu93150.bobo_tweaks.config.ModConfig;
 import com.leclowndu93150.bobo_tweaks.config.DamageSourceConfig;
 import com.leclowndu93150.bobo_tweaks.additional.smithing.SmithingBlacklistRegistration;
 import com.leclowndu93150.bobo_tweaks.additional.villager.VillagerModuleRegistration;
+import com.leclowndu93150.bobo_tweaks.additional.enchantments.EnchantmentModuleRegistration;
 import com.leclowndu93150.bobo_tweaks.event.ModEventHandler;
 import com.leclowndu93150.bobo_tweaks.network.ModNetworking;
 import com.leclowndu93150.bobo_tweaks.registry.ModAttributes;
@@ -18,6 +19,7 @@ import com.leclowndu93150.bobo_tweaks.registry.ModPotions;
 import com.mojang.logging.LogUtils;
 import io.redspace.ironsspellbooks.api.events.SpellDamageEvent;
 import io.redspace.ironsspellbooks.api.events.SpellOnCastEvent;
+import net.minecraft.world.damagesource.DamageSources;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.behavior.VillagerGoalPackages;
@@ -57,6 +59,7 @@ public class BoboTweaks {
         ModPotions.register(modEventBus);
         ModAttributes.register(modEventBus);
         ModCreativeTabs.register(modEventBus);
+        EnchantmentModuleRegistration.register(modEventBus);
 
         modEventBus.register(ModEventHandler.class);
         forgeEventBus.register(new ModEventHandler());
@@ -71,6 +74,7 @@ public class BoboTweaks {
         ExclusiveItemsRegistration.init();
         SmithingBlacklistRegistration.init();
         VillagerModuleRegistration.register();
+        EnchantmentModuleRegistration.registerEvents();
 
         modEventBus.addListener(this::commonSetup);
     }
