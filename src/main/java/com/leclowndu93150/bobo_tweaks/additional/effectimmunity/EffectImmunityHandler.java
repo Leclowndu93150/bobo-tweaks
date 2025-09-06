@@ -20,21 +20,18 @@ public class EffectImmunityHandler {
         String effectId = BuiltInRegistries.MOB_EFFECT.getKey(event.getEffectInstance().getEffect()).toString();
         String entityId = BuiltInRegistries.ENTITY_TYPE.getKey(event.getEntity().getType()).toString();
 
-        // Check mob-specific immunities first (highest priority)
         List<String> mobImmunities = EffectImmunityConfig.getImmunitiesForMob(entityId);
         if (mobImmunities.contains(effectId)) {
             event.setResult(Event.Result.DENY);
             return;
         }
-        
-        // Check effect-specific immunities (medium priority)
+
         List<String> immuneMobs = EffectImmunityConfig.getImmuneMobsForEffect(effectId);
         if (immuneMobs.contains(entityId)) {
             event.setResult(Event.Result.DENY);
             return;
         }
 
-        // Check global immunity (lowest priority)
         if (EffectImmunityConfig.isGlobalImmunityEnabled() && 
             EffectImmunityConfig.getGlobalImmunityEffects().contains(effectId)) {
             event.setResult(Event.Result.DENY);

@@ -1,6 +1,8 @@
 package com.leclowndu93150.bobo_tweaks.additional.enchantments;
 
 import com.leclowndu93150.bobo_tweaks.additional.enchantments.config.EnchantmentModuleConfig;
+import com.leclowndu93150.bobo_tweaks.registry.ModAttributes;
+import io.redspace.ironsspellbooks.registries.MobEffectRegistry;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.damagesource.DamageSource;
@@ -8,6 +10,7 @@ import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -105,7 +108,7 @@ public class EnchantmentModuleHandler {
         if (!EnchantmentModuleConfig.enableEnchantmentModule) return;
 
         if (!event.isVanillaCritical() && event.getDamageModifier() <= 1.0f) {
-            return; // Not actually a crit
+            return;
         }
 
         Player player = event.getEntity();
@@ -183,7 +186,8 @@ public class EnchantmentModuleHandler {
             int duration = EnchantmentModuleConfig.Reprisal.baseDuration +
                     (reprisalLevel - 1) * EnchantmentModuleConfig.Reprisal.durationPerLevel;
 
-            applyTimedModifier(player, Attributes.ATTACK_DAMAGE, REPRISAL_DAMAGE_UUID,
+            // Use DAMAGE_AMPLIFIER instead of ATTACK_DAMAGE
+            applyTimedModifier(player, ModAttributes.DAMAGE_AMPLIFIER.get(), REPRISAL_DAMAGE_UUID,
                     "Reprisal Damage", damageBoost, AttributeModifier.Operation.ADDITION, duration);
 
             setEnchantmentFlag(playerId, "reprisal_active", true, duration);
@@ -209,15 +213,13 @@ public class EnchantmentModuleHandler {
             int maxStacks = EnchantmentModuleConfig.Momentum.baseMaxStacks +
                     (momentumLevel - 1) * EnchantmentModuleConfig.Momentum.maxStackIncreasePerLevel;
 
-            if (currentStacks >= maxStacks) {
-                // Refresh duration at max stacks
-                data.putLong("momentum_expire_time",
-                        System.currentTimeMillis() + (EnchantmentModuleConfig.Momentum.stackDuration * 50L));
-            } else {
+            // Always refresh duration on kill
+            data.putLong("momentum_expire_time",
+                    System.currentTimeMillis() + (EnchantmentModuleConfig.Momentum.stackDuration * 50L));
+
+            if (currentStacks < maxStacks) {
                 int newStacks = Math.min(currentStacks + stacksToAdd, maxStacks);
                 data.putInt("momentum_stacks", newStacks);
-                data.putLong("momentum_expire_time",
-                        System.currentTimeMillis() + (EnchantmentModuleConfig.Momentum.stackDuration * 50L));
                 updateMomentumDamage(killer, newStacks, momentumLevel);
             }
         }
@@ -226,22 +228,16 @@ public class EnchantmentModuleHandler {
     private static void handleShadowWalkerTrigger(Player killer, boolean isDirectKill) {
         if (!EnchantmentModuleConfig.ShadowWalker.enabled) return;
 
-        ItemStack chestplate = killer.getItemBySlot(net.minecraft.world.entity.EquipmentSlot.CHEST);
-        int shadowLevel = EnchantmentHelper.getItemEnchantmentLevel(
-                EnchantmentModuleRegistration.SHADOW_WALKER.get(), chestplate);
+        ItemStack chestplate = killer.getItemBySlot(EquipmentSlot.CHEST);
+        int shadowLevel = EnchantmentHelper.getItemEnchantmentLevel(EnchantmentModuleRegistration.SHADOW_WALKER.get(), chestplate);
 
         if (shadowLevel > 0) {
             if (isDirectKill) {
-                MobEffect trueInvisEffect = ForgeRegistries.MOB_EFFECTS.getValue(
-                        new ResourceLocation("irons_spellbooks", "true_invisibility"));
-
-                if (trueInvisEffect != null) {
-                    killer.addEffect(new MobEffectInstance(trueInvisEffect,
-                            EnchantmentModuleConfig.ShadowWalker.invisibilityDuration, 0));
-                }
+                killer.addEffect(new MobEffectInstance(MobEffectRegistry.TRUE_INVISIBILITY.get(),
+                        EnchantmentModuleConfig.ShadowWalker.invisibilityDuration, 0,
+                        false, false, true)); // Added visibility flags
             }
 
-            // Apply movement speed with proper duration
             applyTimedModifier(killer, Attributes.MOVEMENT_SPEED, SHADOW_WALKER_SPEED_UUID,
                     "Shadow Walker Speed",
                     EnchantmentModuleConfig.ShadowWalker.movementSpeedPercent / 100.0,
@@ -445,18 +441,18 @@ public class EnchantmentModuleHandler {
         if (hunterLevel > 0) {
             UUID attackerId = attacker.getUUID();
             UUID targetId = target.getUUID();
-            UUID markedBy = hunterMarks.get(targetId);
 
-            if (attackerId.equals(markedBy)) {
+            String markedBy = target.getPersistentData().getString("hunter_marked_by");
+
+            if (attackerId.toString().equals(markedBy)) {
                 double critDamageBoost = EnchantmentModuleConfig.Hunter.baseCritDamageBoost +
                         (hunterLevel - 1) * EnchantmentModuleConfig.Hunter.critDamagePerLevel;
                 double critChanceBoost = EnchantmentModuleConfig.Hunter.flatCritChance;
 
-                // Apply temporary boost for this attack only (1 tick duration)
                 applyTimedModifier(attacker, getCritDamageAttribute(), HUNTER_CRIT_DAMAGE_UUID,
-                        "Hunter Crit Damage", critDamageBoost / 100.0, AttributeModifier.Operation.MULTIPLY_TOTAL, 1);
+                        "Hunter Crit Damage", critDamageBoost / 100.0, AttributeModifier.Operation.MULTIPLY_TOTAL, 2);
                 applyTimedModifier(attacker, getCritChanceAttribute(), HUNTER_CRIT_CHANCE_UUID,
-                        "Hunter Crit Chance", critChanceBoost / 100.0, AttributeModifier.Operation.ADDITION, 1);
+                        "Hunter Crit Chance", critChanceBoost / 100.0, AttributeModifier.Operation.ADDITION, 2);
             }
         }
     }
@@ -471,8 +467,8 @@ public class EnchantmentModuleHandler {
         double totalDamageBoost = stacks * (EnchantmentModuleConfig.Momentum.damageBoostPerStack +
                 (level - 1) * EnchantmentModuleConfig.Momentum.damageBoostPerLevel);
 
-        // Remove existing momentum modifier and apply new one
-        AttributeInstance damageAttr = player.getAttribute(Attributes.ATTACK_DAMAGE);
+        // Use DAMAGE_AMPLIFIER instead of ATTACK_DAMAGE
+        AttributeInstance damageAttr = player.getAttribute(ModAttributes.DAMAGE_AMPLIFIER.get());
         if (damageAttr != null) {
             damageAttr.removeModifier(MOMENTUM_DAMAGE_UUID);
             if (stacks > 0) {
@@ -481,7 +477,6 @@ public class EnchantmentModuleHandler {
                         AttributeModifier.Operation.ADDITION);
                 damageAttr.addTransientModifier(damageMod);
 
-                // Track this modifier for expiry
                 trackModifier(player.getUUID(), "momentum_damage",
                         System.currentTimeMillis() + (EnchantmentModuleConfig.Momentum.stackDuration * 50L));
             }
@@ -611,26 +606,24 @@ public class EnchantmentModuleHandler {
     private static void handleShadowWalkerInvisibilityDamage(Player attacker) {
         if (!EnchantmentModuleConfig.ShadowWalker.enabled) return;
 
-        ItemStack chestplate = attacker.getItemBySlot(net.minecraft.world.entity.EquipmentSlot.CHEST);
+        ItemStack chestplate = attacker.getItemBySlot(EquipmentSlot.CHEST);
         int shadowLevel = EnchantmentHelper.getItemEnchantmentLevel(
                 EnchantmentModuleRegistration.SHADOW_WALKER.get(), chestplate);
 
         if (shadowLevel > 0) {
             boolean hasInvisibility = attacker.hasEffect(MobEffects.INVISIBILITY);
 
-            MobEffect trueInvisEffect = ForgeRegistries.MOB_EFFECTS.getValue(
-                    new ResourceLocation("irons_spellbooks", "true_invisibility"));
+            MobEffect trueInvisEffect = MobEffectRegistry.TRUE_INVISIBILITY.get();
             boolean hasTrueInvisibility = trueInvisEffect != null && attacker.hasEffect(trueInvisEffect);
 
             if (hasInvisibility || hasTrueInvisibility) {
                 double damageBoost = EnchantmentModuleConfig.ShadowWalker.baseDamageAmplifier +
                         (shadowLevel - 1) * EnchantmentModuleConfig.ShadowWalker.damageAmplifierPerLevel;
 
-                // Apply damage boost for one tick (will be consumed on the attack)
-                applyTimedModifier(attacker, Attributes.ATTACK_DAMAGE,
-                        UUID.randomUUID(), // Use random UUID for one-time boost
-                        "Shadow Walker Damage", damageBoost / 100.0,
-                        AttributeModifier.Operation.MULTIPLY_TOTAL, 1);
+                // Use DAMAGE_AMPLIFIER
+                applyTimedModifier(attacker, ModAttributes.DAMAGE_AMPLIFIER.get(),
+                        UUID.randomUUID(), "Shadow Walker Damage", damageBoost,
+                        AttributeModifier.Operation.ADDITION, 1);
             }
         }
     }
@@ -675,9 +668,14 @@ public class EnchantmentModuleHandler {
         if (attunementLevel > 0) {
             double baseDamage = EnchantmentModuleConfig.MagicalAttunement.baseDamagePerLevel * attunementLevel;
             double manaBonus = getPlayerMaxMana(attacker) * EnchantmentModuleConfig.MagicalAttunement.maxManaPercent;
-            double totalDamage = baseDamage + manaBonus;
+            final float lightningDamage = (float)(baseDamage + manaBonus);
 
-            event.getEntity().hurt(attacker.damageSources().lightningBolt(), (float) totalDamage);
+            // Schedule the lightning damage for next tick to avoid overriding
+            attacker.level().getServer().execute(() -> {
+                if (event.getEntity().isAlive()) {
+                    event.getEntity().hurt(attacker.damageSources().lightningBolt(), lightningDamage);
+                }
+            });
 
             // Consume the ready flag
             CompoundTag data = getOrCreateEnchantmentData(attackerId);
@@ -728,8 +726,8 @@ public class EnchantmentModuleHandler {
             data.putInt("momentum_stacks", 0);
             data.remove("momentum_expire_time");
 
-            // Remove momentum damage modifier
-            AttributeInstance damageAttr = player.getAttribute(Attributes.ATTACK_DAMAGE);
+            // Use DAMAGE_AMPLIFIER
+            AttributeInstance damageAttr = player.getAttribute(ModAttributes.DAMAGE_AMPLIFIER.get());
             if (damageAttr != null) {
                 damageAttr.removeModifier(MOMENTUM_DAMAGE_UUID);
             }
@@ -854,10 +852,10 @@ public class EnchantmentModuleHandler {
     }
 
     private static Attribute getLifestealAttribute() {
-        return ForgeRegistries.ATTRIBUTES.getValue(new ResourceLocation("bobo_tweaks", "lifesteal"));
+        return ModAttributes.LIFESTEAL.get();
     }
 
     private static Attribute getSpellLeechAttribute() {
-        return ForgeRegistries.ATTRIBUTES.getValue(new ResourceLocation("bobo_tweaks", "spell_leech"));
+        return ModAttributes.SPELL_LEECH.get();
     }
 }
