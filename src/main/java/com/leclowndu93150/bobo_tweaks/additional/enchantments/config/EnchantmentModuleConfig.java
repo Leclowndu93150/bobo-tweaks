@@ -371,6 +371,7 @@ public class EnchantmentModuleConfig {
     
     private static void saveEnchantmentCap(JsonObject json) {
         JsonObject cap = new JsonObject();
+        cap.addProperty("_description", "Settings for limiting the number of enchantments on items.");
         cap.addProperty("enabled", EnchantmentCap.enabled);
         
         JsonObject itemCaps = new JsonObject();
@@ -383,53 +384,85 @@ public class EnchantmentModuleConfig {
     
     private static void saveReprisal(JsonObject json) {
         JsonObject reprisal = new JsonObject();
+        reprisal.addProperty("_description", "Reprisal: Boosts damage after taking a hit.");
         reprisal.addProperty("enabled", Reprisal.enabled);
         reprisal.addProperty("max_level", Reprisal.maxLevel);
+        reprisal.addProperty("_base_damage_boost_description", "Base damage boost in percentage.");
         reprisal.addProperty("base_damage_boost", Reprisal.baseDamageBoost);
+        reprisal.addProperty("_damage_boost_per_level_description", "Additional damage boost in percentage per enchantment level.");
         reprisal.addProperty("damage_boost_per_level", Reprisal.damageBoostPerLevel);
+        reprisal.addProperty("_base_duration_description", "Base duration of the effect in ticks (20 ticks = 1 second).");
         reprisal.addProperty("base_duration", Reprisal.baseDuration);
+        reprisal.addProperty("_duration_per_level_description", "Additional duration in ticks per enchantment level.");
         reprisal.addProperty("duration_per_level", Reprisal.durationPerLevel);
+        reprisal.addProperty("_base_cooldown_description", "Base cooldown in ticks.");
         reprisal.addProperty("base_cooldown", Reprisal.baseCooldown);
+        reprisal.addProperty("_cooldown_reduction_per_level_description", "Cooldown reduction in ticks per enchantment level.");
         reprisal.addProperty("cooldown_reduction_per_level", Reprisal.cooldownReductionPerLevel);
         json.add("reprisal", reprisal);
     }
     
     private static void saveMomentum(JsonObject json) {
         JsonObject momentum = new JsonObject();
+        momentum.addProperty("_description", "Momentum: Gain damage stacks on kills.");
         momentum.addProperty("enabled", Momentum.enabled);
         momentum.addProperty("max_level", Momentum.maxLevel);
+        momentum.addProperty("_base_max_stacks_description", "Base maximum number of stacks.");
         momentum.addProperty("base_max_stacks", Momentum.baseMaxStacks);
+        momentum.addProperty("_max_stack_increase_per_level_description", "Increase in max stacks per enchantment level.");
         momentum.addProperty("max_stack_increase_per_level", Momentum.maxStackIncreasePerLevel);
+        momentum.addProperty("_stack_duration_description", "Duration of each stack in ticks.");
         momentum.addProperty("stack_duration", Momentum.stackDuration);
+        momentum.addProperty("_damage_boost_per_stack_description", "Damage boost in percentage per stack.");
         momentum.addProperty("damage_boost_per_stack", Momentum.damageBoostPerStack);
+        momentum.addProperty("_damage_boost_per_level_description", "Additional damage boost in percentage per level.");
         momentum.addProperty("damage_boost_per_level", Momentum.damageBoostPerLevel);
+        momentum.addProperty("_kill_stacks_description", "Number of stacks gained on killing a mob.");
         momentum.addProperty("kill_stacks", Momentum.killStacks);
+        momentum.addProperty("_ally_kill_stacks_description", "Number of stacks gained when an ally kills a mob.");
         momentum.addProperty("ally_kill_stacks", Momentum.allyKillStacks);
         json.add("momentum", momentum);
     }
     
     private static void saveSpellblade(JsonObject json) {
         JsonObject spellblade = new JsonObject();
+        spellblade.addProperty("_description", "Spellblade: Grants buffs on spell casts and attacks.");
         spellblade.addProperty("enabled", Spellblade.enabled);
         spellblade.addProperty("max_level", Spellblade.maxLevel);
         
         JsonObject passiveA = new JsonObject();
+        passiveA.addProperty("_description", "Passive A: Boosts spell power after a melee or ranged attack.");
+        passiveA.addProperty("_base_melee_spell_power_boost_description", "Base spell power boost for melee attacks in percentage.");
         passiveA.addProperty("base_melee_spell_power_boost", Spellblade.PassiveA.baseMeleeSpellPowerBoost);
+        passiveA.addProperty("_melee_boost_per_level_description", "Additional spell power boost for melee attacks per level in percentage.");
         passiveA.addProperty("melee_boost_per_level", Spellblade.PassiveA.meleeBoostPerLevel);
+        passiveA.addProperty("_base_ranged_spell_power_boost_description", "Base spell power boost for ranged attacks in percentage.");
         passiveA.addProperty("base_ranged_spell_power_boost", Spellblade.PassiveA.baseRangedSpellPowerBoost);
+        passiveA.addProperty("_ranged_boost_per_level_description", "Additional spell power boost for ranged attacks per level in percentage.");
         passiveA.addProperty("ranged_boost_per_level", Spellblade.PassiveA.rangedBoostPerLevel);
+        passiveA.addProperty("_duration_description", "Duration of the boost in ticks.");
         passiveA.addProperty("duration", Spellblade.PassiveA.duration);
+        passiveA.addProperty("_base_cooldown_description", "Base cooldown in ticks.");
         passiveA.addProperty("base_cooldown", Spellblade.PassiveA.baseCooldown);
+        passiveA.addProperty("_cooldown_decrease_per_level_description", "Cooldown decrease per level in ticks.");
         passiveA.addProperty("cooldown_decrease_per_level", Spellblade.PassiveA.cooldownDecreasePerLevel);
         spellblade.add("passive_a", passiveA);
         
         JsonObject passiveB = new JsonObject();
+        passiveB.addProperty("_description", "Passive B: Boosts attack damage after a spell cast.");
+        passiveB.addProperty("_base_arrow_damage_boost_description", "Base arrow damage boost in percentage.");
         passiveB.addProperty("base_arrow_damage_boost", Spellblade.PassiveB.baseArrowDamageBoost);
+        passiveB.addProperty("_arrow_boost_per_level_description", "Additional arrow damage boost per level in percentage.");
         passiveB.addProperty("arrow_boost_per_level", Spellblade.PassiveB.arrowBoostPerLevel);
+        passiveB.addProperty("_base_attack_damage_boost_description", "Base attack damage boost in percentage.");
         passiveB.addProperty("base_attack_damage_boost", Spellblade.PassiveB.baseAttackDamageBoost);
+        passiveB.addProperty("_attack_boost_per_level_description", "Additional attack damage boost per level in percentage.");
         passiveB.addProperty("attack_boost_per_level", Spellblade.PassiveB.attackBoostPerLevel);
+        passiveB.addProperty("_duration_description", "Duration of the boost in ticks.");
         passiveB.addProperty("duration", Spellblade.PassiveB.duration);
+        passiveB.addProperty("_base_cooldown_description", "Base cooldown in ticks.");
         passiveB.addProperty("base_cooldown", Spellblade.PassiveB.baseCooldown);
+        passiveB.addProperty("_cooldown_decrease_per_level_description", "Cooldown decrease per level in ticks.");
         passiveB.addProperty("cooldown_decrease_per_level", Spellblade.PassiveB.cooldownDecreasePerLevel);
         spellblade.add("passive_b", passiveB);
         
@@ -438,84 +471,126 @@ public class EnchantmentModuleConfig {
     
     private static void saveMagicalAttunement(JsonObject json) {
         JsonObject ma = new JsonObject();
+        ma.addProperty("_description", "Magical Attunement: Deals extra damage based on mana when using spells.");
         ma.addProperty("enabled", MagicalAttunement.enabled);
         ma.addProperty("max_level", MagicalAttunement.maxLevel);
+        ma.addProperty("_base_damage_per_level_description", "Base damage dealt per level of enchantment.");
         ma.addProperty("base_damage_per_level", MagicalAttunement.baseDamagePerLevel);
+        ma.addProperty("_max_mana_percent_description", "Maximum mana percentage that contributes to the damage.");
         ma.addProperty("max_mana_percent", MagicalAttunement.maxManaPercent);
+        ma.addProperty("_duration_description", "Duration of the effect in ticks.");
         ma.addProperty("duration", MagicalAttunement.duration);
+        ma.addProperty("_base_cooldown_description", "Base cooldown in ticks.");
         ma.addProperty("base_cooldown", MagicalAttunement.baseCooldown);
+        ma.addProperty("_cooldown_decrease_per_level_description", "Cooldown decrease per level in ticks.");
         ma.addProperty("cooldown_decrease_per_level", MagicalAttunement.cooldownDecreasePerLevel);
         json.add("magical_attunement", ma);
     }
     
     private static void savePerfectionist(JsonObject json) {
         JsonObject perf = new JsonObject();
+        perf.addProperty("_description", "Perfectionist: Boosts attack and cast speed at full health.");
         perf.addProperty("enabled", Perfectionist.enabled);
         perf.addProperty("max_level", Perfectionist.maxLevel);
+        perf.addProperty("_base_attack_speed_boost_description", "Base attack speed boost in percentage.");
         perf.addProperty("base_attack_speed_boost", Perfectionist.baseAttackSpeedBoost);
+        perf.addProperty("_attack_speed_per_level_description", "Additional attack speed boost per level in percentage.");
         perf.addProperty("attack_speed_per_level", Perfectionist.attackSpeedPerLevel);
+        perf.addProperty("_base_cast_speed_boost_description", "Base cast speed boost in percentage.");
         perf.addProperty("base_cast_speed_boost", Perfectionist.baseCastSpeedBoost);
+        perf.addProperty("_cast_speed_per_level_description", "Additional cast speed boost per level in percentage.");
         perf.addProperty("cast_speed_per_level", Perfectionist.castSpeedPerLevel);
+        perf.addProperty("_duration_description", "Duration of the boost in ticks.");
         perf.addProperty("duration", Perfectionist.duration);
         json.add("perfectionist", perf);
     }
     
     private static void saveHunter(JsonObject json) {
         JsonObject hunter = new JsonObject();
+        hunter.addProperty("_description", "Hunter: Increases critical strike damage and chance.");
         hunter.addProperty("enabled", Hunter.enabled);
         hunter.addProperty("max_level", Hunter.maxLevel);
+        hunter.addProperty("_base_crit_damage_boost_description", "Base critical damage boost in percentage.");
         hunter.addProperty("base_crit_damage_boost", Hunter.baseCritDamageBoost);
+        hunter.addProperty("_crit_damage_per_level_description", "Additional critical damage boost per level in percentage.");
         hunter.addProperty("crit_damage_per_level", Hunter.critDamagePerLevel);
+        hunter.addProperty("_flat_crit_chance_description", "Flat critical strike chance increase in percentage.");
         hunter.addProperty("flat_crit_chance", Hunter.flatCritChance);
         json.add("hunter", hunter);
     }
     
     private static void saveMultiscale(JsonObject json) {
         JsonObject multi = new JsonObject();
+        multi.addProperty("_description", "Multiscale: Provides flat and percentage-based armor.");
         multi.addProperty("enabled", Multiscale.enabled);
         multi.addProperty("max_level", Multiscale.maxLevel);
+        multi.addProperty("_flat_armor_per_level_description", "Flat armor increase per enchantment level.");
         multi.addProperty("flat_armor_per_level", Multiscale.flatArmorPerLevel);
+        multi.addProperty("_percent_armor_per_level_description", "Percentage armor increase per enchantment level.");
         multi.addProperty("percent_armor_per_level", Multiscale.percentArmorPerLevel);
         json.add("multiscale", multi);
     }
     
     private static void saveInvigoratingDefenses(JsonObject json) {
         JsonObject invig = new JsonObject();
+        invig.addProperty("_description", "Invigorating Defenses: Grants movement speed and health regeneration when blocking an attack.");
         invig.addProperty("enabled", InvigoratingDefenses.enabled);
         invig.addProperty("max_level", InvigoratingDefenses.maxLevel);
+        invig.addProperty("_base_movement_speed_boost_description", "Base movement speed boost in percentage.");
         invig.addProperty("base_movement_speed_boost", InvigoratingDefenses.baseMovementSpeedBoost);
+        invig.addProperty("_speed_boost_per_level_description", "Additional movement speed boost per level in percentage.");
         invig.addProperty("speed_boost_per_level", InvigoratingDefenses.speedBoostPerLevel);
+        invig.addProperty("_base_health_restored_description", "Base health restored.");
         invig.addProperty("base_health_restored", InvigoratingDefenses.baseHealthRestored);
+        invig.addProperty("_health_restored_per_level_description", "Additional health restored per level.");
         invig.addProperty("health_restored_per_level", InvigoratingDefenses.healthRestoredPerLevel);
+        invig.addProperty("_cooldown_description", "Cooldown in ticks.");
         invig.addProperty("cooldown", InvigoratingDefenses.cooldown);
+        invig.addProperty("_base_duration_description", "Base duration of the effect in ticks.");
         invig.addProperty("base_duration", InvigoratingDefenses.baseDuration);
+        invig.addProperty("_duration_per_level_description", "Additional duration per level in ticks.");
         invig.addProperty("duration_per_level", InvigoratingDefenses.durationPerLevel);
         json.add("invigorating_defenses", invig);
     }
     
     private static void saveLifeSurge(JsonObject json) {
         JsonObject life = new JsonObject();
+        life.addProperty("_description", "Life Surge: Grants defensive stats and lifesteal/spellsteal when low on health.");
         life.addProperty("enabled", LifeSurge.enabled);
         life.addProperty("max_level", LifeSurge.maxLevel);
+        life.addProperty("_health_threshold_description", "Health percentage below which the effect activates.");
         life.addProperty("health_threshold", LifeSurge.healthThreshold);
+        life.addProperty("_flat_armor_per_level_description", "Flat armor increase per enchantment level.");
         life.addProperty("flat_armor_per_level", LifeSurge.flatArmorPerLevel);
+        life.addProperty("_percent_armor_per_level_description", "Percentage armor increase per enchantment level.");
         life.addProperty("percent_armor_per_level", LifeSurge.percentArmorPerLevel);
+        life.addProperty("_flat_lifesteal_per_level_description", "Flat lifesteal increase per enchantment level.");
         life.addProperty("flat_lifesteal_per_level", LifeSurge.flatLifestealPerLevel);
+        life.addProperty("_flat_spell_steal_per_level_description", "Flat spell steal increase per enchantment level.");
         life.addProperty("flat_spell_steal_per_level", LifeSurge.flatSpellStealPerLevel);
+        life.addProperty("_duration_description", "Duration of the effect in ticks.");
         life.addProperty("duration", LifeSurge.duration);
+        life.addProperty("_base_cooldown_description", "Base cooldown in ticks.");
         life.addProperty("base_cooldown", LifeSurge.baseCooldown);
+        life.addProperty("_cooldown_decrease_per_level_description", "Cooldown decrease per level in ticks.");
         life.addProperty("cooldown_decrease_per_level", LifeSurge.cooldownDecreasePerLevel);
         json.add("life_surge", life);
     }
     
     private static void saveShadowWalker(JsonObject json) {
         JsonObject shadow = new JsonObject();
+        shadow.addProperty("_description", "Shadow Walker: Grants invisibility and a damage boost after sneaking.");
         shadow.addProperty("enabled", ShadowWalker.enabled);
         shadow.addProperty("max_level", ShadowWalker.maxLevel);
+        shadow.addProperty("_invisibility_duration_description", "Duration of the invisibility in ticks.");
         shadow.addProperty("invisibility_duration", ShadowWalker.invisibilityDuration);
+        shadow.addProperty("_movement_speed_duration_description", "Duration of the movement speed boost in ticks.");
         shadow.addProperty("movement_speed_duration", ShadowWalker.movementSpeedDuration);
+        shadow.addProperty("_movement_speed_percent_description", "Movement speed boost in percentage.");
         shadow.addProperty("movement_speed_percent", ShadowWalker.movementSpeedPercent);
+        shadow.addProperty("_base_damage_amplifier_description", "Base damage amplifier in percentage.");
         shadow.addProperty("base_damage_amplifier", ShadowWalker.baseDamageAmplifier);
+        shadow.addProperty("_damage_amplifier_per_level_description", "Additional damage amplifier per level in percentage.");
         shadow.addProperty("damage_amplifier_per_level", ShadowWalker.damageAmplifierPerLevel);
         json.add("shadow_walker", shadow);
     }
