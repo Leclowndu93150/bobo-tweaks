@@ -94,81 +94,11 @@ public class EnchantmentModuleHandler {
         }
     }
 
-    @SubscribeEvent
-    public static void onShieldBlock(ShieldBlockEvent event) {
-        if (!EnchantmentModuleConfig.enableEnchantmentModule) return;
-
-        if (event.getEntity() instanceof Player player) {
-            handleInvigoratingDefensesTrigger(player);
-        }
-    }
-
-    @SubscribeEvent
-    public static void onCriticalHit(CriticalHitEvent event) {
-        if (!EnchantmentModuleConfig.enableEnchantmentModule) return;
-
-        if (!event.isVanillaCritical() && event.getDamageModifier() <= 1.0f) {
-            return;
-        }
-
-        Player player = event.getEntity();
-        ItemStack weapon = player.getMainHandItem();
-
-        handlePerfectionistTrigger(player, weapon);
-    }
-
-    @SubscribeEvent
-    public static void onMobDeath(LivingDeathEvent event) {
-        if (!EnchantmentModuleConfig.enableEnchantmentModule) return;
-
-        if (event.getSource().getEntity() instanceof Player killer) {
-            handleMomentumTrigger(killer, event.getEntity(), true);
-            handleShadowWalkerTrigger(killer, true);
-            handleHunterMarkRemoval(event.getEntity());
-        }
-
-        handleTeammateKillEffects(event);
-    }
-
-    @SubscribeEvent
-    public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
-        if (event.phase != TickEvent.Phase.END) return;
-        if (!EnchantmentModuleConfig.enableEnchantmentModule) return;
-
-        Player player = event.player;
-        if (player.level().isClientSide) return;
-
-        handlePeriodicEffects(player);
-        handleMomentumExpiry(player);
-        handleInvigoratingDefensesHealing(player);
-        handleMultiscaleContinuous(player);
-        cleanupExpiredModifiers(player);
-    }
-
-    @SubscribeEvent
-    public static void onSpellCast(SpellOnCastEvent event) {
-        if (!EnchantmentModuleConfig.enableEnchantmentModule) return;
-
-        handleSpellbladeSpellCast(event.getEntity());
-    }
-
-    @SubscribeEvent
-    public static void onPlayerLogOut(PlayerEvent.PlayerLoggedOutEvent event) {
-        UUID playerId = event.getEntity().getUUID();
-        playerEnchantmentData.remove(playerId);
-        hunterMarks.values().removeIf(markedBy -> markedBy.equals(playerId));
-        activeModifiers.remove(playerId);
-
-        // Clean up all attribute modifiers
-        cleanupAllModifiers(event.getEntity());
-    }
-
     private static void handleReprisalTrigger(Player player, DamageSource source) {
         if (!EnchantmentModuleConfig.Reprisal.enabled) return;
 
-        ItemStack weapon = player.getMainHandItem();
-        int reprisalLevel = EnchantmentHelper.getItemEnchantmentLevel(
-                EnchantmentModuleRegistration.REPRISAL.get(), weapon);
+        int reprisalLevel = getEnchantmentLevelFromCategory(player,
+                EnchantmentModuleRegistration.REPRISAL.get(), EnchantmentModuleConfig.Reprisal.category);
 
         if (reprisalLevel > 0 && source.getEntity() instanceof Mob) {
             UUID playerId = player.getUUID();
@@ -194,12 +124,64 @@ public class EnchantmentModuleHandler {
         }
     }
 
+    @SubscribeEvent
+    public static void onShieldBlock(ShieldBlockEvent event) {
+        if (!EnchantmentModuleConfig.enableEnchantmentModule) return;
+
+        if (event.getEntity() instanceof Player player) {
+            handleInvigoratingDefensesTrigger(player);
+        }
+    }
+
+    @SubscribeEvent
+    public static void onMobDeath(LivingDeathEvent event) {
+        if (!EnchantmentModuleConfig.enableEnchantmentModule) return;
+
+        if (event.getSource().getEntity() instanceof Player killer) {
+            handleMomentumTrigger(killer, event.getEntity(), true);
+            handleShadowWalkerTrigger(killer, true);
+            handleHunterMarkRemoval(event.getEntity());
+        }
+
+        handleTeammateKillEffects(event);
+    }
+
+    @SubscribeEvent
+    public static void onSpellCast(SpellOnCastEvent event) {
+        if (!EnchantmentModuleConfig.enableEnchantmentModule) return;
+
+        handleSpellbladeSpellCast(event.getEntity());
+    }
+
+    public static void triggerPerfectionist(Player player) {
+        if (!EnchantmentModuleConfig.Perfectionist.enabled) return;
+
+        int perfectionistLevel = getEnchantmentLevelFromCategory(player,
+                EnchantmentModuleRegistration.PERFECTIONIST.get(), EnchantmentModuleConfig.Perfectionist.category);
+
+        if (perfectionistLevel > 0) {
+            double attackSpeedBoost = EnchantmentModuleConfig.Perfectionist.baseAttackSpeedBoost +
+                    (perfectionistLevel - 1) * EnchantmentModuleConfig.Perfectionist.attackSpeedPerLevel;
+            double castSpeedBoost = EnchantmentModuleConfig.Perfectionist.baseCastSpeedBoost +
+                    (perfectionistLevel - 1) * EnchantmentModuleConfig.Perfectionist.castSpeedPerLevel;
+
+            applyTimedModifier(player, Attributes.ATTACK_SPEED, PERFECTIONIST_ATTACK_SPEED_UUID,
+                    "Perfectionist Attack Speed", attackSpeedBoost / 100.0,
+                    AttributeModifier.Operation.MULTIPLY_TOTAL,
+                    EnchantmentModuleConfig.Perfectionist.duration);
+
+            applyTimedModifier(player, getCastTimeReductionAttribute(), PERFECTIONIST_CAST_SPEED_UUID,
+                    "Perfectionist Cast Speed", castSpeedBoost / 100.0,
+                    AttributeModifier.Operation.ADDITION,
+                    EnchantmentModuleConfig.Perfectionist.duration);
+        }
+    }
+
     private static void handleMomentumTrigger(Player killer, LivingEntity victim, boolean isDirectKill) {
         if (!EnchantmentModuleConfig.Momentum.enabled) return;
 
-        ItemStack weapon = killer.getMainHandItem();
-        int momentumLevel = EnchantmentHelper.getItemEnchantmentLevel(
-                EnchantmentModuleRegistration.MOMENTUM.get(), weapon);
+        int momentumLevel = getEnchantmentLevelFromCategory(killer,
+                EnchantmentModuleRegistration.MOMENTUM.get(), EnchantmentModuleConfig.Momentum.category);
 
         if (momentumLevel > 0 && (victim instanceof Mob)) {
             UUID killerId = killer.getUUID();
@@ -228,8 +210,8 @@ public class EnchantmentModuleHandler {
     private static void handleShadowWalkerTrigger(Player killer, boolean isDirectKill) {
         if (!EnchantmentModuleConfig.ShadowWalker.enabled) return;
 
-        ItemStack chestplate = killer.getItemBySlot(EquipmentSlot.CHEST);
-        int shadowLevel = EnchantmentHelper.getItemEnchantmentLevel(EnchantmentModuleRegistration.SHADOW_WALKER.get(), chestplate);
+        int shadowLevel = getEnchantmentLevelFromCategory(killer,
+                EnchantmentModuleRegistration.SHADOW_WALKER.get(), EnchantmentModuleConfig.ShadowWalker.category);
 
         if (shadowLevel > 0) {
             if (isDirectKill) {
@@ -246,9 +228,11 @@ public class EnchantmentModuleHandler {
         }
     }
 
-    private static void handleSpellbladePassiveA(Player attacker, ItemStack weapon, DamageSource source) {
+    private static void handleSpellbladePassiveA(Player attacker, DamageSource source) {
         if (!EnchantmentModuleConfig.Spellblade.enabled) return;
 
+        ItemStack weapon = getEnchantedItemStackFromCategory(attacker,
+                EnchantmentModuleRegistration.SPELLBLADE.get(), EnchantmentModuleConfig.Spellblade.category);
         int spellbladeLevel = EnchantmentHelper.getItemEnchantmentLevel(
                 EnchantmentModuleRegistration.SPELLBLADE.get(), weapon);
 
@@ -288,36 +272,11 @@ public class EnchantmentModuleHandler {
         }
     }
 
-    private static void handlePerfectionistTrigger(Player player, ItemStack weapon) {
-        if (!EnchantmentModuleConfig.Perfectionist.enabled) return;
-
-        int perfectionistLevel = EnchantmentHelper.getItemEnchantmentLevel(
-                EnchantmentModuleRegistration.PERFECTIONIST.get(), weapon);
-
-        if (perfectionistLevel > 0) {
-            double attackSpeedBoost = EnchantmentModuleConfig.Perfectionist.baseAttackSpeedBoost +
-                    (perfectionistLevel - 1) * EnchantmentModuleConfig.Perfectionist.attackSpeedPerLevel;
-            double castSpeedBoost = EnchantmentModuleConfig.Perfectionist.baseCastSpeedBoost +
-                    (perfectionistLevel - 1) * EnchantmentModuleConfig.Perfectionist.castSpeedPerLevel;
-
-            applyTimedModifier(player, Attributes.ATTACK_SPEED, PERFECTIONIST_ATTACK_SPEED_UUID,
-                    "Perfectionist Attack Speed", attackSpeedBoost / 100.0,
-                    AttributeModifier.Operation.MULTIPLY_TOTAL,
-                    EnchantmentModuleConfig.Perfectionist.duration);
-
-            applyTimedModifier(player, getCastTimeReductionAttribute(), PERFECTIONIST_CAST_SPEED_UUID,
-                    "Perfectionist Cast Speed", castSpeedBoost / 100.0,
-                    AttributeModifier.Operation.ADDITION,
-                    EnchantmentModuleConfig.Perfectionist.duration);
-        }
-    }
-
     private static void handleLifeSurgeTrigger(Player player) {
         if (!EnchantmentModuleConfig.LifeSurge.enabled) return;
 
-        ItemStack chestplate = player.getItemBySlot(net.minecraft.world.entity.EquipmentSlot.CHEST);
-        int lifeSurgeLevel = EnchantmentHelper.getItemEnchantmentLevel(
-                EnchantmentModuleRegistration.LIFE_SURGE.get(), chestplate);
+        int lifeSurgeLevel = getEnchantmentLevelFromCategory(player,
+                EnchantmentModuleRegistration.LIFE_SURGE.get(), EnchantmentModuleConfig.LifeSurge.category);
 
         if (lifeSurgeLevel > 0 &&
                 player.getHealth() / player.getMaxHealth() <= EnchantmentModuleConfig.LifeSurge.healthThreshold) {
@@ -364,9 +323,8 @@ public class EnchantmentModuleHandler {
     private static void handleInvigoratingDefensesTrigger(Player player) {
         if (!EnchantmentModuleConfig.InvigoratingDefenses.enabled) return;
 
-        ItemStack chestplate = player.getItemBySlot(net.minecraft.world.entity.EquipmentSlot.CHEST);
-        int invigoratingLevel = EnchantmentHelper.getItemEnchantmentLevel(
-                EnchantmentModuleRegistration.INVIGORATING_DEFENSES.get(), chestplate);
+        int invigoratingLevel = getEnchantmentLevelFromCategory(player,
+                EnchantmentModuleRegistration.INVIGORATING_DEFENSES.get(), EnchantmentModuleConfig.InvigoratingDefenses.category);
 
         if (invigoratingLevel > 0) {
             UUID playerId = player.getUUID();
@@ -397,12 +355,13 @@ public class EnchantmentModuleHandler {
     }
 
     private static void handleWeaponEnchantmentAttacks(Player attacker, Entity target, DamageSource source) {
-        ItemStack weapon = attacker.getMainHandItem();
-
         if (target instanceof LivingEntity livingTarget) {
-            handleHunterMarking(attacker, livingTarget, weapon);
-            handleHunterDamageBonus(attacker, livingTarget, weapon);
-            handleSpellbladePassiveA(attacker, weapon, source);
+            ItemStack hunterWeapon = getEnchantedItemStackFromCategory(attacker,
+                    EnchantmentModuleRegistration.HUNTER.get(), EnchantmentModuleConfig.Hunter.category);
+            handleHunterMarking(attacker, livingTarget, hunterWeapon);
+            handleHunterDamageBonus(attacker, livingTarget, hunterWeapon);
+
+            handleSpellbladePassiveA(attacker, source);
             handleShadowWalkerInvisibilityDamage(attacker);
 
             if (hasEnchantmentFlag(attacker.getUUID(), "reprisal_active")) {
@@ -564,6 +523,93 @@ public class EnchantmentModuleHandler {
         }
     }
 
+    private static ItemStack getEnchantedItemStackFromCategory(Player player, net.minecraft.world.item.enchantment.Enchantment enchantment, String categoryName) {
+        ItemStack enchantedItem = ItemStack.EMPTY;
+        int maxLevel = 0;
+
+        switch (categoryName.toUpperCase()) {
+            case "ARMOR":
+                for (EquipmentSlot slot : EquipmentSlot.values()) {
+                    if (slot.getType() == EquipmentSlot.Type.ARMOR) {
+                        ItemStack itemStack = player.getItemBySlot(slot);
+                        int level = EnchantmentHelper.getItemEnchantmentLevel(enchantment, itemStack);
+                        if (level > maxLevel) {
+                            maxLevel = level;
+                            enchantedItem = itemStack;
+                        }
+                    }
+                }
+                break;
+            case "ARMOR_FEET":
+                enchantedItem = player.getItemBySlot(EquipmentSlot.FEET);
+                break;
+            case "ARMOR_LEGS":
+                enchantedItem = player.getItemBySlot(EquipmentSlot.LEGS);
+                break;
+            case "ARMOR_CHEST":
+                enchantedItem = player.getItemBySlot(EquipmentSlot.CHEST);
+                break;
+            case "ARMOR_HEAD":
+                enchantedItem = player.getItemBySlot(EquipmentSlot.HEAD);
+                break;
+            case "WEAPON":
+            case "DIGGER":
+            case "FISHING_ROD":
+            case "TRIDENT":
+            case "BOW":
+            case "CROSSBOW":
+            case "WEAPON_AND_BOW":
+                enchantedItem = player.getMainHandItem();
+                break;
+            case "WEARABLE":
+                for (EquipmentSlot slot : EquipmentSlot.values()) {
+                    if (slot.getType() == EquipmentSlot.Type.ARMOR || slot == EquipmentSlot.MAINHAND || slot == EquipmentSlot.OFFHAND) {
+                        ItemStack itemStack = player.getItemBySlot(slot);
+                        int level = EnchantmentHelper.getItemEnchantmentLevel(enchantment, itemStack);
+                        if (level > maxLevel) {
+                            maxLevel = level;
+                            enchantedItem = itemStack;
+                        }
+                    }
+                }
+                break;
+            case "BREAKABLE":
+            case "VANISHABLE":
+                ItemStack mainHand = player.getMainHandItem();
+                int mainHandLevel = EnchantmentHelper.getItemEnchantmentLevel(enchantment, mainHand);
+                if (mainHandLevel > maxLevel) {
+                    maxLevel = mainHandLevel;
+                    enchantedItem = mainHand;
+                }
+
+                ItemStack offHand = player.getOffhandItem();
+                int offHandLevel = EnchantmentHelper.getItemEnchantmentLevel(enchantment, offHand);
+                if (offHandLevel > maxLevel) {
+                    maxLevel = offHandLevel;
+                    enchantedItem = offHand;
+                }
+
+                for (ItemStack itemStack : player.getArmorSlots()) {
+                    int level = EnchantmentHelper.getItemEnchantmentLevel(enchantment, itemStack);
+                    if (level > maxLevel) {
+                        maxLevel = level;
+                        enchantedItem = itemStack;
+                    }
+                }
+                break;
+        }
+        // Final check if the found item actually has the enchantment
+        if (EnchantmentHelper.getItemEnchantmentLevel(enchantment, enchantedItem) > 0) {
+            return enchantedItem;
+        }
+        return ItemStack.EMPTY;
+    }
+
+    private static int getEnchantmentLevelFromCategory(Player player, net.minecraft.world.item.enchantment.Enchantment enchantment, String categoryName) {
+        ItemStack itemStack = getEnchantedItemStackFromCategory(player, enchantment, categoryName);
+        return EnchantmentHelper.getItemEnchantmentLevel(enchantment, itemStack);
+    }
+
     private static void removeModifier(Player player, Attribute attribute, UUID modifierUUID) {
         AttributeInstance instance = player.getAttribute(attribute);
         if (instance != null) {
@@ -606,9 +652,8 @@ public class EnchantmentModuleHandler {
     private static void handleShadowWalkerInvisibilityDamage(Player attacker) {
         if (!EnchantmentModuleConfig.ShadowWalker.enabled) return;
 
-        ItemStack chestplate = attacker.getItemBySlot(EquipmentSlot.CHEST);
-        int shadowLevel = EnchantmentHelper.getItemEnchantmentLevel(
-                EnchantmentModuleRegistration.SHADOW_WALKER.get(), chestplate);
+        int shadowLevel = getEnchantmentLevelFromCategory(attacker,
+                EnchantmentModuleRegistration.SHADOW_WALKER.get(), EnchantmentModuleConfig.ShadowWalker.category);
 
         if (shadowLevel > 0) {
             boolean hasInvisibility = attacker.hasEffect(MobEffects.INVISIBILITY);
@@ -635,9 +680,8 @@ public class EnchantmentModuleHandler {
     private static void handleMagicalAttunementPeriodic(Player player) {
         if (!EnchantmentModuleConfig.MagicalAttunement.enabled) return;
 
-        ItemStack weapon = player.getMainHandItem();
-        int attunementLevel = EnchantmentHelper.getItemEnchantmentLevel(
-                EnchantmentModuleRegistration.MAGICAL_ATTUNEMENT.get(), weapon);
+        int attunementLevel = getEnchantmentLevelFromCategory(player,
+                EnchantmentModuleRegistration.MAGICAL_ATTUNEMENT.get(), EnchantmentModuleConfig.MagicalAttunement.category);
 
         if (attunementLevel > 0) {
             UUID playerId = player.getUUID();
@@ -661,9 +705,8 @@ public class EnchantmentModuleHandler {
         UUID attackerId = attacker.getUUID();
         if (!hasEnchantmentFlag(attackerId, "magical_attunement_ready")) return;
 
-        ItemStack weapon = attacker.getMainHandItem();
-        int attunementLevel = EnchantmentHelper.getItemEnchantmentLevel(
-                EnchantmentModuleRegistration.MAGICAL_ATTUNEMENT.get(), weapon);
+        int attunementLevel = getEnchantmentLevelFromCategory(attacker,
+                EnchantmentModuleRegistration.MAGICAL_ATTUNEMENT.get(), EnchantmentModuleConfig.MagicalAttunement.category);
 
         if (attunementLevel > 0) {
             double baseDamage = EnchantmentModuleConfig.MagicalAttunement.baseDamagePerLevel * attunementLevel;
@@ -687,9 +730,8 @@ public class EnchantmentModuleHandler {
     private static void handleSpellbladeSpellCast(Player caster) {
         if (!EnchantmentModuleConfig.Spellblade.enabled) return;
 
-        ItemStack weapon = caster.getMainHandItem();
-        int spellbladeLevel = EnchantmentHelper.getItemEnchantmentLevel(
-                EnchantmentModuleRegistration.SPELLBLADE.get(), weapon);
+        int spellbladeLevel = getEnchantmentLevelFromCategory(caster,
+                EnchantmentModuleRegistration.SPELLBLADE.get(), EnchantmentModuleConfig.Spellblade.category);
 
         if (spellbladeLevel > 0) {
             UUID casterId = caster.getUUID();
@@ -765,9 +807,8 @@ public class EnchantmentModuleHandler {
     private static void handleMultiscaleContinuous(Player player) {
         if (!EnchantmentModuleConfig.Multiscale.enabled) return;
 
-        ItemStack chestplate = player.getItemBySlot(net.minecraft.world.entity.EquipmentSlot.CHEST);
-        int multiscaleLevel = EnchantmentHelper.getItemEnchantmentLevel(
-                EnchantmentModuleRegistration.MULTISCALE.get(), chestplate);
+        int multiscaleLevel = getEnchantmentLevelFromCategory(player,
+                EnchantmentModuleRegistration.MULTISCALE.get(), EnchantmentModuleConfig.Multiscale.category);
 
         boolean isFullHealth = player.getHealth() >= player.getMaxHealth() - 0.01f; // Small tolerance for float precision
         AttributeInstance armorAttr = player.getAttribute(Attributes.ARMOR);
