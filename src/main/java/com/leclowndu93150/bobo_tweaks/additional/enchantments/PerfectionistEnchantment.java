@@ -8,7 +8,7 @@ import net.minecraft.world.item.enchantment.EnchantmentCategory;
 public class PerfectionistEnchantment extends Enchantment {
     
     public PerfectionistEnchantment() {
-        super(Rarity.VERY_RARE, EnchantmentCategory.WEAPON, new EquipmentSlot[]{EquipmentSlot.MAINHAND});
+        super(Rarity.VERY_RARE, EnchantmentModuleConfig.getCategoryFromString(EnchantmentModuleConfig.Perfectionist.category), new EquipmentSlot[]{EquipmentSlot.MAINHAND});
     }
     
     @Override

@@ -8,7 +8,7 @@ import net.minecraft.world.item.enchantment.EnchantmentCategory;
 public class MagicalAttunementEnchantment extends Enchantment {
     
     public MagicalAttunementEnchantment() {
-        super(Rarity.RARE, EnchantmentCategory.WEAPON, new EquipmentSlot[]{EquipmentSlot.MAINHAND});
+        super(Rarity.RARE, EnchantmentModuleConfig.getCategoryFromString(EnchantmentModuleConfig.MagicalAttunement.category), new EquipmentSlot[]{EquipmentSlot.MAINHAND});
     }
     
     @Override

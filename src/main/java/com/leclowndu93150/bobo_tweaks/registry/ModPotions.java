@@ -63,6 +63,9 @@ public class ModPotions {
     
     public static final RegistryObject<MobEffect> WOODWARD_SENTINEL = MOB_EFFECTS.register("woodward_sentinel",
         WoodwardSentinelEffect::new);
+
+    public static final RegistryObject<MobEffect> PENUMBRAL_MARK = MOB_EFFECTS.register("penumbral_mark",
+        PenumbralMarkEffect::new);
     
     public static void register(IEventBus eventBus) {
         MOB_EFFECTS.register(eventBus);

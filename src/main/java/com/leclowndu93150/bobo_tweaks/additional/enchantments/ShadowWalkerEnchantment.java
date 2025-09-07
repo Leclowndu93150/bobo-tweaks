@@ -8,7 +8,7 @@ import net.minecraft.world.item.enchantment.EnchantmentCategory;
 public class ShadowWalkerEnchantment extends Enchantment {
     
     public ShadowWalkerEnchantment() {
-        super(Rarity.VERY_RARE, EnchantmentCategory.ARMOR_CHEST, new EquipmentSlot[]{EquipmentSlot.CHEST});
+        super(Rarity.VERY_RARE, EnchantmentModuleConfig.getCategoryFromString(EnchantmentModuleConfig.ShadowWalker.category), new EquipmentSlot[]{EquipmentSlot.CHEST});
     }
     
     @Override

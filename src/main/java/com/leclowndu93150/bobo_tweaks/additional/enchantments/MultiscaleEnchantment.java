@@ -8,7 +8,7 @@ import net.minecraft.world.item.enchantment.EnchantmentCategory;
 public class MultiscaleEnchantment extends Enchantment {
     
     public MultiscaleEnchantment() {
-        super(Rarity.RARE, EnchantmentCategory.ARMOR_CHEST, new EquipmentSlot[]{EquipmentSlot.CHEST});
+        super(Rarity.RARE, EnchantmentModuleConfig.getCategoryFromString(EnchantmentModuleConfig.Multiscale.category), new EquipmentSlot[]{EquipmentSlot.CHEST});
     }
     
     @Override

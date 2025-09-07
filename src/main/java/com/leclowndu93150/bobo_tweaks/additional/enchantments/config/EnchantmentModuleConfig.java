@@ -2,9 +2,10 @@ package com.leclowndu93150.bobo_tweaks.additional.enchantments.config;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import net.minecraft.world.item.enchantment.EnchantmentCategory;
+import com.leclowndu93150.bobo_tweaks.additional.enchantments.CustomEnchantmentCategory;
 
 import java.io.File;
 import java.io.FileReader;
@@ -30,6 +31,7 @@ public class EnchantmentModuleConfig {
     
     public static class Reprisal {
         public static boolean enabled = true;
+        public static String category = "WEAPON";
         public static int maxLevel = 3;
         public static double baseDamageBoost = 2.0;
         public static double damageBoostPerLevel = 1.0;
@@ -41,6 +43,7 @@ public class EnchantmentModuleConfig {
     
     public static class Momentum {
         public static boolean enabled = true;
+        public static String category = "WEAPON";
         public static int maxLevel = 3;
         public static int baseMaxStacks = 5;
         public static int maxStackIncreasePerLevel = 2;
@@ -53,6 +56,7 @@ public class EnchantmentModuleConfig {
     
     public static class Spellblade {
         public static boolean enabled = true;
+        public static String category = "WEAPON_AND_BOW";
         public static int maxLevel = 3;
         
         public static class PassiveA {
@@ -78,6 +82,7 @@ public class EnchantmentModuleConfig {
     
     public static class MagicalAttunement {
         public static boolean enabled = true;
+        public static String category = "WEAPON";
         public static int maxLevel = 3;
         public static double baseDamagePerLevel = 3.0;
         public static double maxManaPercent = 0.1;
@@ -88,6 +93,7 @@ public class EnchantmentModuleConfig {
     
     public static class Perfectionist {
         public static boolean enabled = true;
+        public static String category = "WEAPON";
         public static int maxLevel = 3;
         public static double baseAttackSpeedBoost = 10.0;
         public static double attackSpeedPerLevel = 5.0;
@@ -98,6 +104,7 @@ public class EnchantmentModuleConfig {
     
     public static class Hunter {
         public static boolean enabled = true;
+        public static String category = "WEAPON_AND_BOW";
         public static int maxLevel = 3;
         public static double baseCritDamageBoost = 20.0;
         public static double critDamagePerLevel = 10.0;
@@ -106,6 +113,7 @@ public class EnchantmentModuleConfig {
     
     public static class Multiscale {
         public static boolean enabled = true;
+        public static String category = "ARMOR_CHEST";
         public static int maxLevel = 3;
         public static double flatArmorPerLevel = 2.0;
         public static double percentArmorPerLevel = 5.0;
@@ -113,6 +121,7 @@ public class EnchantmentModuleConfig {
     
     public static class InvigoratingDefenses {
         public static boolean enabled = true;
+        public static String category = "ARMOR_CHEST";
         public static int maxLevel = 3;
         public static double baseMovementSpeedBoost = 20.0;
         public static double speedBoostPerLevel = 5.0;
@@ -125,6 +134,7 @@ public class EnchantmentModuleConfig {
     
     public static class LifeSurge {
         public static boolean enabled = true;
+        public static String category = "ARMOR_CHEST";
         public static int maxLevel = 3;
         public static double healthThreshold = 0.4;
         public static double flatArmorPerLevel = 3.0;
@@ -138,12 +148,34 @@ public class EnchantmentModuleConfig {
     
     public static class ShadowWalker {
         public static boolean enabled = true;
+        public static String category = "ARMOR_CHEST";
         public static int maxLevel = 3;
         public static int invisibilityDuration = 60;
         public static int movementSpeedDuration = 60;
         public static double movementSpeedPercent = 30.0;
         public static double baseDamageAmplifier = 20.0;
         public static double damageAmplifierPerLevel = 10.0;
+    }
+
+    public static EnchantmentCategory getCategoryFromString(String categoryName) {
+        return switch (categoryName.toUpperCase()) {
+            case "ARMOR" -> EnchantmentCategory.ARMOR;
+            case "ARMOR_FEET" -> EnchantmentCategory.ARMOR_FEET;
+            case "ARMOR_LEGS" -> EnchantmentCategory.ARMOR_LEGS;
+            case "ARMOR_CHEST" -> EnchantmentCategory.ARMOR_CHEST;
+            case "ARMOR_HEAD" -> EnchantmentCategory.ARMOR_HEAD;
+            case "WEAPON" -> EnchantmentCategory.WEAPON;
+            case "DIGGER" -> EnchantmentCategory.DIGGER;
+            case "FISHING_ROD" -> EnchantmentCategory.FISHING_ROD;
+            case "TRIDENT" -> EnchantmentCategory.TRIDENT;
+            case "BREAKABLE" -> EnchantmentCategory.BREAKABLE;
+            case "BOW" -> EnchantmentCategory.BOW;
+            case "WEARABLE" -> EnchantmentCategory.WEARABLE;
+            case "CROSSBOW" -> EnchantmentCategory.CROSSBOW;
+            case "VANISHABLE" -> EnchantmentCategory.VANISHABLE;
+            case "WEAPON_AND_BOW" -> CustomEnchantmentCategory.WEAPON_AND_BOW;
+            default -> EnchantmentCategory.WEAPON;
+        };
     }
     
     public static void load() {
@@ -195,6 +227,7 @@ public class EnchantmentModuleConfig {
         if (json.has("reprisal")) {
             JsonObject reprisal = json.getAsJsonObject("reprisal");
             if (reprisal.has("enabled")) Reprisal.enabled = reprisal.get("enabled").getAsBoolean();
+            if (reprisal.has("category")) Reprisal.category = reprisal.get("category").getAsString();
             if (reprisal.has("max_level")) Reprisal.maxLevel = reprisal.get("max_level").getAsInt();
             if (reprisal.has("base_damage_boost")) Reprisal.baseDamageBoost = reprisal.get("base_damage_boost").getAsDouble();
             if (reprisal.has("damage_boost_per_level")) Reprisal.damageBoostPerLevel = reprisal.get("damage_boost_per_level").getAsDouble();
@@ -209,6 +242,7 @@ public class EnchantmentModuleConfig {
         if (json.has("momentum")) {
             JsonObject momentum = json.getAsJsonObject("momentum");
             if (momentum.has("enabled")) Momentum.enabled = momentum.get("enabled").getAsBoolean();
+            if (momentum.has("category")) Momentum.category = momentum.get("category").getAsString();
             if (momentum.has("max_level")) Momentum.maxLevel = momentum.get("max_level").getAsInt();
             if (momentum.has("base_max_stacks")) Momentum.baseMaxStacks = momentum.get("base_max_stacks").getAsInt();
             if (momentum.has("max_stack_increase_per_level")) Momentum.maxStackIncreasePerLevel = momentum.get("max_stack_increase_per_level").getAsInt();
@@ -224,6 +258,7 @@ public class EnchantmentModuleConfig {
         if (json.has("spellblade")) {
             JsonObject spellblade = json.getAsJsonObject("spellblade");
             if (spellblade.has("enabled")) Spellblade.enabled = spellblade.get("enabled").getAsBoolean();
+            if (spellblade.has("category")) Spellblade.category = spellblade.get("category").getAsString();
             if (spellblade.has("max_level")) Spellblade.maxLevel = spellblade.get("max_level").getAsInt();
             
             if (spellblade.has("passive_a")) {
@@ -254,6 +289,7 @@ public class EnchantmentModuleConfig {
         if (json.has("magical_attunement")) {
             JsonObject ma = json.getAsJsonObject("magical_attunement");
             if (ma.has("enabled")) MagicalAttunement.enabled = ma.get("enabled").getAsBoolean();
+            if (ma.has("category")) MagicalAttunement.category = ma.get("category").getAsString();
             if (ma.has("max_level")) MagicalAttunement.maxLevel = ma.get("max_level").getAsInt();
             if (ma.has("base_damage_per_level")) MagicalAttunement.baseDamagePerLevel = ma.get("base_damage_per_level").getAsDouble();
             if (ma.has("max_mana_percent")) MagicalAttunement.maxManaPercent = ma.get("max_mana_percent").getAsDouble();
@@ -267,6 +303,7 @@ public class EnchantmentModuleConfig {
         if (json.has("perfectionist")) {
             JsonObject perf = json.getAsJsonObject("perfectionist");
             if (perf.has("enabled")) Perfectionist.enabled = perf.get("enabled").getAsBoolean();
+            if (perf.has("category")) Perfectionist.category = perf.get("category").getAsString();
             if (perf.has("max_level")) Perfectionist.maxLevel = perf.get("max_level").getAsInt();
             if (perf.has("base_attack_speed_boost")) Perfectionist.baseAttackSpeedBoost = perf.get("base_attack_speed_boost").getAsDouble();
             if (perf.has("attack_speed_per_level")) Perfectionist.attackSpeedPerLevel = perf.get("attack_speed_per_level").getAsDouble();
@@ -280,6 +317,7 @@ public class EnchantmentModuleConfig {
         if (json.has("hunter")) {
             JsonObject hunter = json.getAsJsonObject("hunter");
             if (hunter.has("enabled")) Hunter.enabled = hunter.get("enabled").getAsBoolean();
+            if (hunter.has("category")) Hunter.category = hunter.get("category").getAsString();
             if (hunter.has("max_level")) Hunter.maxLevel = hunter.get("max_level").getAsInt();
             if (hunter.has("base_crit_damage_boost")) Hunter.baseCritDamageBoost = hunter.get("base_crit_damage_boost").getAsDouble();
             if (hunter.has("crit_damage_per_level")) Hunter.critDamagePerLevel = hunter.get("crit_damage_per_level").getAsDouble();
@@ -291,6 +329,7 @@ public class EnchantmentModuleConfig {
         if (json.has("multiscale")) {
             JsonObject multi = json.getAsJsonObject("multiscale");
             if (multi.has("enabled")) Multiscale.enabled = multi.get("enabled").getAsBoolean();
+            if (multi.has("category")) Multiscale.category = multi.get("category").getAsString();
             if (multi.has("max_level")) Multiscale.maxLevel = multi.get("max_level").getAsInt();
             if (multi.has("flat_armor_per_level")) Multiscale.flatArmorPerLevel = multi.get("flat_armor_per_level").getAsDouble();
             if (multi.has("percent_armor_per_level")) Multiscale.percentArmorPerLevel = multi.get("percent_armor_per_level").getAsDouble();
@@ -301,6 +340,7 @@ public class EnchantmentModuleConfig {
         if (json.has("invigorating_defenses")) {
             JsonObject invig = json.getAsJsonObject("invigorating_defenses");
             if (invig.has("enabled")) InvigoratingDefenses.enabled = invig.get("enabled").getAsBoolean();
+            if (invig.has("category")) InvigoratingDefenses.category = invig.get("category").getAsString();
             if (invig.has("max_level")) InvigoratingDefenses.maxLevel = invig.get("max_level").getAsInt();
             if (invig.has("base_movement_speed_boost")) InvigoratingDefenses.baseMovementSpeedBoost = invig.get("base_movement_speed_boost").getAsDouble();
             if (invig.has("speed_boost_per_level")) InvigoratingDefenses.speedBoostPerLevel = invig.get("speed_boost_per_level").getAsDouble();
@@ -316,6 +356,7 @@ public class EnchantmentModuleConfig {
         if (json.has("life_surge")) {
             JsonObject life = json.getAsJsonObject("life_surge");
             if (life.has("enabled")) LifeSurge.enabled = life.get("enabled").getAsBoolean();
+            if (life.has("category")) LifeSurge.category = life.get("category").getAsString();
             if (life.has("max_level")) LifeSurge.maxLevel = life.get("max_level").getAsInt();
             if (life.has("health_threshold")) LifeSurge.healthThreshold = life.get("health_threshold").getAsDouble();
             if (life.has("flat_armor_per_level")) LifeSurge.flatArmorPerLevel = life.get("flat_armor_per_level").getAsDouble();
@@ -332,6 +373,7 @@ public class EnchantmentModuleConfig {
         if (json.has("shadow_walker")) {
             JsonObject shadow = json.getAsJsonObject("shadow_walker");
             if (shadow.has("enabled")) ShadowWalker.enabled = shadow.get("enabled").getAsBoolean();
+            if (shadow.has("category")) ShadowWalker.category = shadow.get("category").getAsString();
             if (shadow.has("max_level")) ShadowWalker.maxLevel = shadow.get("max_level").getAsInt();
             if (shadow.has("invisibility_duration")) ShadowWalker.invisibilityDuration = shadow.get("invisibility_duration").getAsInt();
             if (shadow.has("movement_speed_duration")) ShadowWalker.movementSpeedDuration = shadow.get("movement_speed_duration").getAsInt();
@@ -386,6 +428,7 @@ public class EnchantmentModuleConfig {
         JsonObject reprisal = new JsonObject();
         reprisal.addProperty("_description", "Reprisal: Boosts damage after taking a hit.");
         reprisal.addProperty("enabled", Reprisal.enabled);
+        reprisal.addProperty("category", Reprisal.category);
         reprisal.addProperty("max_level", Reprisal.maxLevel);
         reprisal.addProperty("_base_damage_boost_description", "Base damage boost in percentage.");
         reprisal.addProperty("base_damage_boost", Reprisal.baseDamageBoost);
@@ -406,6 +449,7 @@ public class EnchantmentModuleConfig {
         JsonObject momentum = new JsonObject();
         momentum.addProperty("_description", "Momentum: Gain damage stacks on kills.");
         momentum.addProperty("enabled", Momentum.enabled);
+        momentum.addProperty("category", Momentum.category);
         momentum.addProperty("max_level", Momentum.maxLevel);
         momentum.addProperty("_base_max_stacks_description", "Base maximum number of stacks.");
         momentum.addProperty("base_max_stacks", Momentum.baseMaxStacks);
@@ -428,6 +472,7 @@ public class EnchantmentModuleConfig {
         JsonObject spellblade = new JsonObject();
         spellblade.addProperty("_description", "Spellblade: Grants buffs on spell casts and attacks.");
         spellblade.addProperty("enabled", Spellblade.enabled);
+        spellblade.addProperty("category", Spellblade.category);
         spellblade.addProperty("max_level", Spellblade.maxLevel);
         
         JsonObject passiveA = new JsonObject();
@@ -473,6 +518,7 @@ public class EnchantmentModuleConfig {
         JsonObject ma = new JsonObject();
         ma.addProperty("_description", "Magical Attunement: Deals extra damage based on mana when using spells.");
         ma.addProperty("enabled", MagicalAttunement.enabled);
+        ma.addProperty("category", MagicalAttunement.category);
         ma.addProperty("max_level", MagicalAttunement.maxLevel);
         ma.addProperty("_base_damage_per_level_description", "Base damage dealt per level of enchantment.");
         ma.addProperty("base_damage_per_level", MagicalAttunement.baseDamagePerLevel);
@@ -491,6 +537,7 @@ public class EnchantmentModuleConfig {
         JsonObject perf = new JsonObject();
         perf.addProperty("_description", "Perfectionist: Boosts attack and cast speed at full health.");
         perf.addProperty("enabled", Perfectionist.enabled);
+        perf.addProperty("category", Perfectionist.category);
         perf.addProperty("max_level", Perfectionist.maxLevel);
         perf.addProperty("_base_attack_speed_boost_description", "Base attack speed boost in percentage.");
         perf.addProperty("base_attack_speed_boost", Perfectionist.baseAttackSpeedBoost);
@@ -509,6 +556,7 @@ public class EnchantmentModuleConfig {
         JsonObject hunter = new JsonObject();
         hunter.addProperty("_description", "Hunter: Increases critical strike damage and chance.");
         hunter.addProperty("enabled", Hunter.enabled);
+        hunter.addProperty("category", Hunter.category);
         hunter.addProperty("max_level", Hunter.maxLevel);
         hunter.addProperty("_base_crit_damage_boost_description", "Base critical damage boost in percentage.");
         hunter.addProperty("base_crit_damage_boost", Hunter.baseCritDamageBoost);
@@ -523,6 +571,7 @@ public class EnchantmentModuleConfig {
         JsonObject multi = new JsonObject();
         multi.addProperty("_description", "Multiscale: Provides flat and percentage-based armor.");
         multi.addProperty("enabled", Multiscale.enabled);
+        multi.addProperty("category", Multiscale.category);
         multi.addProperty("max_level", Multiscale.maxLevel);
         multi.addProperty("_flat_armor_per_level_description", "Flat armor increase per enchantment level.");
         multi.addProperty("flat_armor_per_level", Multiscale.flatArmorPerLevel);
@@ -535,6 +584,7 @@ public class EnchantmentModuleConfig {
         JsonObject invig = new JsonObject();
         invig.addProperty("_description", "Invigorating Defenses: Grants movement speed and health regeneration when blocking an attack.");
         invig.addProperty("enabled", InvigoratingDefenses.enabled);
+        invig.addProperty("category", InvigoratingDefenses.category);
         invig.addProperty("max_level", InvigoratingDefenses.maxLevel);
         invig.addProperty("_base_movement_speed_boost_description", "Base movement speed boost in percentage.");
         invig.addProperty("base_movement_speed_boost", InvigoratingDefenses.baseMovementSpeedBoost);
@@ -557,6 +607,7 @@ public class EnchantmentModuleConfig {
         JsonObject life = new JsonObject();
         life.addProperty("_description", "Life Surge: Grants defensive stats and lifesteal/spellsteal when low on health.");
         life.addProperty("enabled", LifeSurge.enabled);
+        life.addProperty("category", LifeSurge.category);
         life.addProperty("max_level", LifeSurge.maxLevel);
         life.addProperty("_health_threshold_description", "Health percentage below which the effect activates.");
         life.addProperty("health_threshold", LifeSurge.healthThreshold);
@@ -581,6 +632,7 @@ public class EnchantmentModuleConfig {
         JsonObject shadow = new JsonObject();
         shadow.addProperty("_description", "Shadow Walker: Grants invisibility and a damage boost after sneaking.");
         shadow.addProperty("enabled", ShadowWalker.enabled);
+        shadow.addProperty("category", ShadowWalker.category);
         shadow.addProperty("max_level", ShadowWalker.maxLevel);
         shadow.addProperty("_invisibility_duration_description", "Duration of the invisibility in ticks.");
         shadow.addProperty("invisibility_duration", ShadowWalker.invisibilityDuration);

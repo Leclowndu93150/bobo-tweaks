@@ -8,7 +8,7 @@ import net.minecraft.world.item.enchantment.EnchantmentCategory;
 public class ReprisalEnchantment extends Enchantment {
     
     public ReprisalEnchantment() {
-        super(Rarity.RARE, EnchantmentCategory.WEAPON, new EquipmentSlot[]{EquipmentSlot.MAINHAND});
+        super(Rarity.RARE, EnchantmentModuleConfig.getCategoryFromString(EnchantmentModuleConfig.Reprisal.category), new EquipmentSlot[]{EquipmentSlot.MAINHAND});
     }
     
     @Override

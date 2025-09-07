@@ -8,7 +8,7 @@ import net.minecraft.world.item.enchantment.EnchantmentCategory;
 public class SpellbladeEnchantment extends Enchantment {
 
     public SpellbladeEnchantment() {
-        super(Rarity.VERY_RARE, CustomEnchantmentCategory.WEAPON_AND_BOW,
+        super(Rarity.VERY_RARE, EnchantmentModuleConfig.getCategoryFromString(EnchantmentModuleConfig.Spellblade.category),
                 new EquipmentSlot[]{EquipmentSlot.MAINHAND});
     }
     

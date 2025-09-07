@@ -86,7 +86,13 @@ public class ModConfig {
         public final ForgeConfigSpec.DoubleValue woodwardSentinelHealingReduction;
         public final ForgeConfigSpec.DoubleValue woodwardSentinelDistributedHealingMultiplier;
         public final ForgeConfigSpec.DoubleValue woodwardSentinelHealCap;
-        
+
+        // Penumbral Mark Effect
+        public final ForgeConfigSpec.DoubleValue penumbralMarkDamageIncreaseBase;
+        public final ForgeConfigSpec.DoubleValue penumbralMarkDamageIncreasePerLevel;
+        public final ForgeConfigSpec.DoubleValue penumbralMarkFlatHealPerLevel;
+        public final ForgeConfigSpec.DoubleValue penumbralMarkAlchemicalBoostScaleFactorPerLevel;
+
         CommonConfig(ForgeConfigSpec.Builder builder) {
             builder.push("life_drain");
             lifeDrainInterval = builder
@@ -290,6 +296,21 @@ public class ModConfig {
             woodwardSentinelHealCap = builder
                 .comment("Maximum healing that can be distributed per teammate (0 = no cap)")
                 .defineInRange("heal_cap", 0.0, 0.0, 100.0);
+            builder.pop();
+
+            builder.push("penumbral_mark_effect");
+            penumbralMarkDamageIncreaseBase = builder
+                .comment("Base percentage damage increase for the mark (0.1 = 10%)")
+                .defineInRange("damage_increase_base", 0.1, 0.0, 10.0);
+            penumbralMarkDamageIncreasePerLevel = builder
+                .comment("Additional percentage damage increase per level of the effect (0.05 = 5%)")
+                .defineInRange("damage_increase_per_level", 0.05, 0.0, 10.0);
+            penumbralMarkFlatHealPerLevel = builder
+                .comment("Flat amount the attacker heals per level of the effect")
+                .defineInRange("flat_heal_per_level", 2.0, 0.0, 100.0);
+            penumbralMarkAlchemicalBoostScaleFactorPerLevel = builder
+                .comment("Additional healing per point of the attacker's Alchemical Boost attribute, per level of the effect")
+                .defineInRange("alchemical_boost_scale_factor_per_level", 0.5, 0.0, 50.0);
             builder.pop();
         }
     }

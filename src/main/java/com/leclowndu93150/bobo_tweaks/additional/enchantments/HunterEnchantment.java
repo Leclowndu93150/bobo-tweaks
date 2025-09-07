@@ -8,7 +8,7 @@ import net.minecraft.world.item.enchantment.EnchantmentCategory;
 public class HunterEnchantment extends Enchantment {
 
     public HunterEnchantment() {
-        super(Rarity.RARE, CustomEnchantmentCategory.WEAPON_AND_BOW,
+        super(Rarity.RARE, EnchantmentModuleConfig.getCategoryFromString(EnchantmentModuleConfig.Hunter.category),
                 new EquipmentSlot[]{EquipmentSlot.MAINHAND});
     }
     

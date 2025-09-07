@@ -8,7 +8,7 @@ import net.minecraft.world.item.enchantment.EnchantmentCategory;
 public class InvigoratingDefensesEnchantment extends Enchantment {
     
     public InvigoratingDefensesEnchantment() {
-        super(Rarity.VERY_RARE, EnchantmentCategory.ARMOR_CHEST, new EquipmentSlot[]{EquipmentSlot.CHEST});
+        super(Rarity.VERY_RARE, EnchantmentModuleConfig.getCategoryFromString(EnchantmentModuleConfig.InvigoratingDefenses.category), new EquipmentSlot[]{EquipmentSlot.CHEST});
     }
     
     @Override

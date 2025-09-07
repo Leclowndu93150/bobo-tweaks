@@ -8,7 +8,7 @@ import net.minecraft.world.item.enchantment.EnchantmentCategory;
 public class MomentumEnchantment extends Enchantment {
     
     public MomentumEnchantment() {
-        super(Rarity.RARE, EnchantmentCategory.WEAPON, new EquipmentSlot[]{EquipmentSlot.MAINHAND});
+        super(Rarity.RARE, EnchantmentModuleConfig.getCategoryFromString(EnchantmentModuleConfig.Momentum.category), new EquipmentSlot[]{EquipmentSlot.MAINHAND});
     }
     
     @Override

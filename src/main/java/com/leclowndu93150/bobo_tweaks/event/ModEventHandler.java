@@ -14,6 +14,7 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.AddReloadListenerEvent;
 import net.minecraftforge.event.entity.EntityAttributeModificationEvent;
@@ -83,6 +84,31 @@ public class ModEventHandler {
 
     @SubscribeEvent
     public void onLivingHurt(LivingHurtEvent event) {
+        LivingEntity target = event.getEntity();
+
+        // Penumbral Mark Logicv
+        if (target.hasEffect(ModPotions.PENUMBRAL_MARK.get())) {
+            if (event.getSource().getEntity() instanceof Player attacker) {
+                int amplifier = target.getEffect(ModPotions.PENUMBRAL_MARK.get()).getAmplifier();
+                
+                // Damage Increase
+                double baseDamageIncrease = ModConfig.COMMON.penumbralMarkDamageIncreaseBase.get();
+                double damageIncreasePerLevel = ModConfig.COMMON.penumbralMarkDamageIncreasePerLevel.get();
+                double totalDamageIncrease = baseDamageIncrease + (amplifier * damageIncreasePerLevel);
+                event.setAmount(event.getAmount() * (1.0F + (float)totalDamageIncrease));
+
+                // Healing
+                AttributeInstance alchemicalBoostAttr = attacker.getAttribute(ModAttributes.ALCHEMICAL_BOOST.get());
+                double alchemicalBoost = alchemicalBoostAttr != null ? alchemicalBoostAttr.getValue() : 0.0;
+                double flatHeal = ModConfig.COMMON.penumbralMarkFlatHealPerLevel.get() * (amplifier + 1);
+                double scaledHeal = alchemicalBoost * ModConfig.COMMON.penumbralMarkAlchemicalBoostScaleFactorPerLevel.get() * (amplifier + 1);
+                attacker.heal((float)(flatHeal + scaledHeal));
+
+                // Remove effect
+                target.removeEffect(ModPotions.PENUMBRAL_MARK.get());
+            }
+        }
+
         if (event.getSource().getEntity() instanceof LivingEntity attacker) {
             AttributeInstance damageAmpInstance = attacker.getAttribute(ModAttributes.DAMAGE_AMPLIFIER.get());
             if (damageAmpInstance != null && damageAmpInstance.getValue() > 0) {
