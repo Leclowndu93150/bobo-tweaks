@@ -20,8 +20,7 @@ public class AttributeEventsMixin {
             method = "apothCriticalStrike",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/world/entity/LivingEntity;level()Lnet/minecraft/world/level/Level;",
-                    ordinal = 1
+                    target = "Lnet/minecraft/world/entity/LivingEntity;level()Lnet/minecraft/world/level/Level;"
             ),
             locals = LocalCapture.CAPTURE_FAILHARD
     )
