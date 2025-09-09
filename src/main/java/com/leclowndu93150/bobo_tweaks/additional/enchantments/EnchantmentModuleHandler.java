@@ -4,7 +4,10 @@ import com.leclowndu93150.bobo_tweaks.additional.enchantments.config.Enchantment
 import com.leclowndu93150.bobo_tweaks.registry.ModAttributes;
 import io.redspace.ironsspellbooks.registries.MobEffectRegistry;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -45,12 +48,10 @@ import java.util.concurrent.ConcurrentHashMap;
 @Mod.EventBusSubscriber(modid = "bobo_tweaks", bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class EnchantmentModuleHandler {
 
-    // Thread-safe maps for tracking enchantment data
     private static final Map<UUID, CompoundTag> playerEnchantmentData = new ConcurrentHashMap<>();
     private static final Map<UUID, UUID> hunterMarks = new ConcurrentHashMap<>();
     private static final Map<UUID, Map<String, Long>> activeModifiers = new ConcurrentHashMap<>();
 
-    // Fixed UUIDs for attribute modifiers - using proper UUID format
     private static final UUID REPRISAL_DAMAGE_UUID = UUID.fromString("e7f3c5d2-8a9b-4f3e-b1d4-6c8a9f2e3d5b");
     private static final UUID MOMENTUM_DAMAGE_UUID = UUID.fromString("a3b2c1d4-5e6f-7a8b-9c0d-1e2f3a4b5c6d");
     private static final UUID MULTISCALE_FLAT_UUID = UUID.fromString("b4d5e6f7-8a9b-1c2d-3e4f-5a6b7c8d9e0f");
@@ -68,6 +69,7 @@ public class EnchantmentModuleHandler {
     private static final UUID SPELLBLADE_B_ATTACK_UUID = UUID.fromString("b6d7e8f9-0a1b-2c3d-4e5f-6a7b8c9d0e1f");
     private static final UUID HUNTER_CRIT_DAMAGE_UUID = UUID.fromString("c7e8f9a0-1b2c-3d4e-5f6a-7b8c9d0e1f2a");
     private static final UUID HUNTER_CRIT_CHANCE_UUID = UUID.fromString("d8f9a0b1-2c3d-4e5f-6a7b-8c9d0e1f2a3b");
+    private static final UUID SHADOW_WALKER_DAMAGE_UUID = UUID.fromString("e8f9a0b1-2c3d-4e5f-6a7b-8c9d0e1f2a3c");
 
     public static void register() {
         MinecraftForge.EVENT_BUS.register(EnchantmentModuleHandler.class);
@@ -91,36 +93,6 @@ public class EnchantmentModuleHandler {
         if (event.getSource().getEntity() instanceof Player attacker) {
             handleWeaponEnchantmentAttacks(attacker, event.getEntity(), event.getSource());
             handleMagicalAttunementDamage(attacker, event);
-        }
-    }
-
-    private static void handleReprisalTrigger(Player player, DamageSource source) {
-        if (!EnchantmentModuleConfig.Reprisal.enabled) return;
-
-        int reprisalLevel = getEnchantmentLevelFromCategory(player,
-                EnchantmentModuleRegistration.REPRISAL.get(), EnchantmentModuleConfig.Reprisal.category);
-
-        if (reprisalLevel > 0 && source.getEntity() instanceof Mob) {
-            UUID playerId = player.getUUID();
-            long currentTime = System.currentTimeMillis();
-
-            String cooldownKey = "reprisal_cooldown";
-            if (isOnCooldown(playerId, cooldownKey, currentTime)) return;
-
-            int cooldown = EnchantmentModuleConfig.Reprisal.baseCooldown -
-                    (reprisalLevel - 1) * EnchantmentModuleConfig.Reprisal.cooldownReductionPerLevel;
-            setCooldown(playerId, cooldownKey, currentTime + (cooldown * 50L));
-
-            double damageBoost = EnchantmentModuleConfig.Reprisal.baseDamageBoost +
-                    (reprisalLevel - 1) * EnchantmentModuleConfig.Reprisal.damageBoostPerLevel;
-            int duration = EnchantmentModuleConfig.Reprisal.baseDuration +
-                    (reprisalLevel - 1) * EnchantmentModuleConfig.Reprisal.durationPerLevel;
-
-            // Use DAMAGE_AMPLIFIER instead of ATTACK_DAMAGE
-            applyTimedModifier(player, ModAttributes.DAMAGE_AMPLIFIER.get(), REPRISAL_DAMAGE_UUID,
-                    "Reprisal Damage", damageBoost, AttributeModifier.Operation.ADDITION, duration);
-
-            setEnchantmentFlag(playerId, "reprisal_active", true, duration);
         }
     }
 
@@ -153,6 +125,39 @@ public class EnchantmentModuleHandler {
         handleSpellbladeSpellCast(event.getEntity());
     }
 
+    @SubscribeEvent
+    public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
+        if (!EnchantmentModuleConfig.enableEnchantmentModule) return;
+        if (event.phase != TickEvent.Phase.END || event.player.level().isClientSide()) return;
+
+        Player player = event.player;
+
+        cleanupExpiredModifiers(player);
+
+        handleMomentumExpiry(player);
+
+        handleInvigoratingDefensesHealing(player);
+
+        handleMultiscaleContinuous(player);
+
+        handlePeriodicEffects(player);
+    }
+
+    @SubscribeEvent
+    public static void onPlayerLogout(PlayerEvent.PlayerLoggedOutEvent event) {
+        UUID playerId = event.getEntity().getUUID();
+        playerEnchantmentData.remove(playerId);
+        activeModifiers.remove(playerId);
+        hunterMarks.values().removeIf(markerId -> markerId.equals(playerId));
+
+        cleanupAllModifiers(event.getEntity());
+    }
+
+    @SubscribeEvent
+    public static void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent event) {
+        cleanupAllModifiers(event.getEntity());
+    }
+
     public static void triggerPerfectionist(Player player) {
         if (!EnchantmentModuleConfig.Perfectionist.enabled) return;
 
@@ -170,10 +175,41 @@ public class EnchantmentModuleHandler {
                     AttributeModifier.Operation.MULTIPLY_TOTAL,
                     EnchantmentModuleConfig.Perfectionist.duration);
 
-            applyTimedModifier(player, getCastTimeReductionAttribute(), PERFECTIONIST_CAST_SPEED_UUID,
-                    "Perfectionist Cast Speed", castSpeedBoost / 100.0,
-                    AttributeModifier.Operation.ADDITION,
-                    EnchantmentModuleConfig.Perfectionist.duration);
+            Attribute castTimeReduction = getCastTimeReductionAttribute();
+            if (castTimeReduction != null) {
+                applyTimedModifier(player, castTimeReduction, PERFECTIONIST_CAST_SPEED_UUID,
+                        "Perfectionist Cast Speed", castSpeedBoost / 100.0,
+                        AttributeModifier.Operation.ADDITION,
+                        EnchantmentModuleConfig.Perfectionist.duration);
+            }
+        }
+    }
+
+    private static void handleReprisalTrigger(Player player, DamageSource source) {
+        if (!EnchantmentModuleConfig.Reprisal.enabled) return;
+
+        int reprisalLevel = getEnchantmentLevelFromCategory(player, EnchantmentModuleRegistration.REPRISAL.get(), EnchantmentModuleConfig.Reprisal.category);
+
+        if (reprisalLevel > 0 && source.getEntity() instanceof Mob) {
+            UUID playerId = player.getUUID();
+            long currentTime = System.currentTimeMillis();
+
+            String cooldownKey = "reprisal_cooldown";
+            if (isOnCooldown(playerId, cooldownKey, currentTime)) return;
+
+            int cooldown = EnchantmentModuleConfig.Reprisal.baseCooldown -
+                    (reprisalLevel - 1) * EnchantmentModuleConfig.Reprisal.cooldownReductionPerLevel;
+            setCooldown(playerId, cooldownKey, currentTime + (cooldown * 50L));
+
+            double damageBoost = EnchantmentModuleConfig.Reprisal.baseDamageBoost +
+                    (reprisalLevel - 1) * EnchantmentModuleConfig.Reprisal.damageBoostPerLevel;
+            int duration = EnchantmentModuleConfig.Reprisal.baseDuration +
+                    (reprisalLevel - 1) * EnchantmentModuleConfig.Reprisal.durationPerLevel;
+
+            applyTimedModifier(player, ModAttributes.DAMAGE_AMPLIFIER.get(), REPRISAL_DAMAGE_UUID,
+                    "Reprisal Damage", damageBoost / 100.0, AttributeModifier.Operation.ADDITION, duration);
+
+            setEnchantmentFlag(playerId, "reprisal_active", true, duration);
         }
     }
 
@@ -195,7 +231,6 @@ public class EnchantmentModuleHandler {
             int maxStacks = EnchantmentModuleConfig.Momentum.baseMaxStacks +
                     (momentumLevel - 1) * EnchantmentModuleConfig.Momentum.maxStackIncreasePerLevel;
 
-            // Always refresh duration on kill
             data.putLong("momentum_expire_time",
                     System.currentTimeMillis() + (EnchantmentModuleConfig.Momentum.stackDuration * 50L));
 
@@ -215,9 +250,10 @@ public class EnchantmentModuleHandler {
 
         if (shadowLevel > 0) {
             if (isDirectKill) {
-                killer.addEffect(new MobEffectInstance(MobEffectRegistry.TRUE_INVISIBILITY.get(),
-                        EnchantmentModuleConfig.ShadowWalker.invisibilityDuration, 0,
-                        false, false, true)); // Added visibility flags
+                MobEffect trueInvis = MobEffectRegistry.TRUE_INVISIBILITY.get();
+                if (trueInvis != null) {
+                    killer.addEffect(new MobEffectInstance(trueInvis, EnchantmentModuleConfig.ShadowWalker.invisibilityDuration, 1 ));
+                }
             }
 
             applyTimedModifier(killer, Attributes.MOVEMENT_SPEED, SHADOW_WALKER_SPEED_UUID,
@@ -264,11 +300,49 @@ public class EnchantmentModuleHandler {
                             (spellbladeLevel - 1) * EnchantmentModuleConfig.Spellblade.PassiveA.rangedBoostPerLevel;
                 }
 
-                applyTimedModifier(attacker, getSpellPowerAttribute(), SPELLBLADE_A_SPELL_POWER_UUID,
-                        "Spellblade Spell Power", spellPowerBoost / 100.0,
-                        AttributeModifier.Operation.MULTIPLY_TOTAL,
-                        EnchantmentModuleConfig.Spellblade.PassiveA.duration);
+                Attribute spellPower = getSpellPowerAttribute();
+                if (spellPower != null) {
+                    applyTimedModifier(attacker, spellPower, SPELLBLADE_A_SPELL_POWER_UUID,
+                            "Spellblade Spell Power", spellPowerBoost / 100.0,
+                            AttributeModifier.Operation.MULTIPLY_TOTAL,
+                            EnchantmentModuleConfig.Spellblade.PassiveA.duration);
+                }
             }
+        }
+    }
+
+    private static void handleSpellbladeSpellCast(Player caster) {
+        if (!EnchantmentModuleConfig.Spellblade.enabled) return;
+
+        int spellbladeLevel = getEnchantmentLevelFromCategory(caster,
+                EnchantmentModuleRegistration.SPELLBLADE.get(), EnchantmentModuleConfig.Spellblade.category);
+
+        if (spellbladeLevel > 0) {
+            UUID casterId = caster.getUUID();
+            long currentTime = System.currentTimeMillis();
+
+            String cooldownKey = "spellblade_passive_b_cooldown";
+            if (isOnCooldown(casterId, cooldownKey, currentTime)) return;
+
+            int cooldown = EnchantmentModuleConfig.Spellblade.PassiveB.baseCooldown -
+                    (spellbladeLevel - 1) * EnchantmentModuleConfig.Spellblade.PassiveB.cooldownDecreasePerLevel;
+            setCooldown(casterId, cooldownKey, currentTime + (cooldown * 50L));
+
+            double arrowDamageBoost = EnchantmentModuleConfig.Spellblade.PassiveB.baseArrowDamageBoost +
+                    (spellbladeLevel - 1) * EnchantmentModuleConfig.Spellblade.PassiveB.arrowBoostPerLevel;
+            double attackDamageBoost = EnchantmentModuleConfig.Spellblade.PassiveB.baseAttackDamageBoost +
+                    (spellbladeLevel - 1) * EnchantmentModuleConfig.Spellblade.PassiveB.attackBoostPerLevel;
+
+            Attribute arrowDamage = getArrowDamageAttribute();
+            if (arrowDamage != null) {
+                applyTimedModifier(caster, arrowDamage, SPELLBLADE_B_ARROW_UUID,
+                        "Spellblade Arrow Damage", arrowDamageBoost / 100.0, AttributeModifier.Operation.MULTIPLY_TOTAL,
+                        EnchantmentModuleConfig.Spellblade.PassiveB.duration);
+            }
+
+            applyTimedModifier(caster, Attributes.ATTACK_DAMAGE, SPELLBLADE_B_ATTACK_UUID,
+                    "Spellblade Attack Damage", attackDamageBoost / 100.0, AttributeModifier.Operation.MULTIPLY_TOTAL,
+                    EnchantmentModuleConfig.Spellblade.PassiveB.duration);
         }
     }
 
@@ -310,11 +384,11 @@ public class EnchantmentModuleHandler {
             double lifestealBoost = EnchantmentModuleConfig.LifeSurge.flatLifestealPerLevel * lifeSurgeLevel;
             double spellLeechBoost = EnchantmentModuleConfig.LifeSurge.flatSpellStealPerLevel * lifeSurgeLevel;
 
-            applyTimedModifier(player, getLifestealAttribute(), LIFE_SURGE_LIFESTEAL_UUID,
+            applyTimedModifier(player, ModAttributes.LIFESTEAL.get(), LIFE_SURGE_LIFESTEAL_UUID,
                     "Life Surge Lifesteal", lifestealBoost / 100.0, AttributeModifier.Operation.ADDITION,
                     EnchantmentModuleConfig.LifeSurge.duration);
 
-            applyTimedModifier(player, getSpellLeechAttribute(), LIFE_SURGE_SPELL_LEECH_UUID,
+            applyTimedModifier(player, ModAttributes.SPELL_LEECH.get(), LIFE_SURGE_SPELL_LEECH_UUID,
                     "Life Surge Spell Leech", spellLeechBoost / 100.0, AttributeModifier.Operation.ADDITION,
                     EnchantmentModuleConfig.LifeSurge.duration);
         }
@@ -365,9 +439,9 @@ public class EnchantmentModuleHandler {
             handleShadowWalkerInvisibilityDamage(attacker);
 
             if (hasEnchantmentFlag(attacker.getUUID(), "reprisal_active")) {
-                livingTarget.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 60, 2));
-                livingTarget.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 60, 2));
-                livingTarget.addEffect(new MobEffectInstance(MobEffects.DIG_SLOWDOWN, 60, 2));
+                attacker.level().playSound(null, attacker.getX(), attacker.getY(), attacker.getZ(),
+                        SoundEvents.ELDER_GUARDIAN_HURT_LAND, SoundSource.PLAYERS, 1.0F, 1.0F);
+                attacker.sendSystemMessage(Component.literal("Reprisal: +15% Damage!"));
             }
         }
     }
@@ -382,10 +456,7 @@ public class EnchantmentModuleHandler {
             UUID attackerId = attacker.getUUID();
             UUID targetId = target.getUUID();
 
-            // Remove previous mark by this player
             hunterMarks.entrySet().removeIf(entry -> entry.getValue().equals(attackerId));
-
-            // Add new mark
             hunterMarks.put(targetId, attackerId);
             target.getPersistentData().putString("hunter_marked_by", attackerId.toString());
         }
@@ -399,8 +470,6 @@ public class EnchantmentModuleHandler {
 
         if (hunterLevel > 0) {
             UUID attackerId = attacker.getUUID();
-            UUID targetId = target.getUUID();
-
             String markedBy = target.getPersistentData().getString("hunter_marked_by");
 
             if (attackerId.toString().equals(markedBy)) {
@@ -408,10 +477,17 @@ public class EnchantmentModuleHandler {
                         (hunterLevel - 1) * EnchantmentModuleConfig.Hunter.critDamagePerLevel;
                 double critChanceBoost = EnchantmentModuleConfig.Hunter.flatCritChance;
 
-                applyTimedModifier(attacker, getCritDamageAttribute(), HUNTER_CRIT_DAMAGE_UUID,
-                        "Hunter Crit Damage", critDamageBoost / 100.0, AttributeModifier.Operation.MULTIPLY_TOTAL, 2);
-                applyTimedModifier(attacker, getCritChanceAttribute(), HUNTER_CRIT_CHANCE_UUID,
-                        "Hunter Crit Chance", critChanceBoost / 100.0, AttributeModifier.Operation.ADDITION, 2);
+                Attribute critDamage = getCritDamageAttribute();
+                if (critDamage != null) {
+                    applyTimedModifier(attacker, critDamage, HUNTER_CRIT_DAMAGE_UUID,
+                            "Hunter Crit Damage", critDamageBoost / 100.0, AttributeModifier.Operation.MULTIPLY_TOTAL, 2);
+                }
+
+                Attribute critChance = getCritChanceAttribute();
+                if (critChance != null) {
+                    applyTimedModifier(attacker, critChance, HUNTER_CRIT_CHANCE_UUID,
+                            "Hunter Crit Chance", critChanceBoost / 100.0, AttributeModifier.Operation.ADDITION, 2);
+                }
             }
         }
     }
@@ -422,233 +498,6 @@ public class EnchantmentModuleHandler {
         deadEntity.getPersistentData().remove("hunter_marked_by");
     }
 
-    private static void updateMomentumDamage(Player player, int stacks, int level) {
-        double totalDamageBoost = stacks * (EnchantmentModuleConfig.Momentum.damageBoostPerStack +
-                (level - 1) * EnchantmentModuleConfig.Momentum.damageBoostPerLevel);
-
-        // Use DAMAGE_AMPLIFIER instead of ATTACK_DAMAGE
-        AttributeInstance damageAttr = player.getAttribute(ModAttributes.DAMAGE_AMPLIFIER.get());
-        if (damageAttr != null) {
-            damageAttr.removeModifier(MOMENTUM_DAMAGE_UUID);
-            if (stacks > 0) {
-                AttributeModifier damageMod = new AttributeModifier(
-                        MOMENTUM_DAMAGE_UUID, "Momentum Damage", totalDamageBoost,
-                        AttributeModifier.Operation.ADDITION);
-                damageAttr.addTransientModifier(damageMod);
-
-                trackModifier(player.getUUID(), "momentum_damage",
-                        System.currentTimeMillis() + (EnchantmentModuleConfig.Momentum.stackDuration * 50L));
-            }
-        }
-    }
-
-    private static void applyTimedModifier(Player player, Attribute attribute, UUID modifierUUID,
-                                           String name, double amount, AttributeModifier.Operation operation,
-                                           int durationTicks) {
-        if (attribute == null) return;
-
-        AttributeInstance attrInstance = player.getAttribute(attribute);
-        if (attrInstance != null) {
-            // Remove existing modifier with same UUID
-            attrInstance.removeModifier(modifierUUID);
-
-            // Add new modifier
-            AttributeModifier modifier = new AttributeModifier(modifierUUID, name, amount, operation);
-            attrInstance.addTransientModifier(modifier);
-
-            // Track expiration time
-            trackModifier(player.getUUID(), modifierUUID.toString(),
-                    System.currentTimeMillis() + (durationTicks * 50L));
-        }
-    }
-
-    private static void trackModifier(UUID playerId, String modifierId, long expireTime) {
-        activeModifiers.computeIfAbsent(playerId, k -> new ConcurrentHashMap<>())
-                .put(modifierId, expireTime);
-    }
-
-    private static void cleanupExpiredModifiers(Player player) {
-        UUID playerId = player.getUUID();
-        Map<String, Long> modifiers = activeModifiers.get(playerId);
-        if (modifiers == null) return;
-
-        long currentTime = System.currentTimeMillis();
-        Iterator<Map.Entry<String, Long>> iterator = modifiers.entrySet().iterator();
-
-        while (iterator.hasNext()) {
-            Map.Entry<String, Long> entry = iterator.next();
-            if (currentTime > entry.getValue()) {
-                String modifierId = entry.getKey();
-
-                // Remove the modifier based on its UUID
-                if (modifierId.equals("momentum_damage")) {
-                    removeModifier(player, Attributes.ATTACK_DAMAGE, MOMENTUM_DAMAGE_UUID);
-                } else {
-                    try {
-                        UUID uuid = UUID.fromString(modifierId);
-                        // Remove from all possible attributes
-                        for (Attribute attr : ForgeRegistries.ATTRIBUTES.getValues()) {
-                            AttributeInstance instance = player.getAttribute(attr);
-                            if (instance != null) {
-                                instance.removeModifier(uuid);
-                            }
-                        }
-                    } catch (IllegalArgumentException ignored) {
-                        // Not a UUID, skip
-                    }
-                }
-
-                iterator.remove();
-            }
-        }
-    }
-
-    private static void cleanupAllModifiers(Player player) {
-        // List of all our custom modifier UUIDs
-        UUID[] allModifierUUIDs = {
-                REPRISAL_DAMAGE_UUID, MOMENTUM_DAMAGE_UUID, MULTISCALE_FLAT_UUID, MULTISCALE_PERCENT_UUID,
-                SHADOW_WALKER_SPEED_UUID, PERFECTIONIST_ATTACK_SPEED_UUID, PERFECTIONIST_CAST_SPEED_UUID,
-                INVIGORATING_SPEED_UUID, LIFE_SURGE_ARMOR_FLAT_UUID, LIFE_SURGE_ARMOR_PERCENT_UUID,
-                LIFE_SURGE_LIFESTEAL_UUID, LIFE_SURGE_SPELL_LEECH_UUID, SPELLBLADE_A_SPELL_POWER_UUID,
-                SPELLBLADE_B_ARROW_UUID, SPELLBLADE_B_ATTACK_UUID, HUNTER_CRIT_DAMAGE_UUID, HUNTER_CRIT_CHANCE_UUID
-        };
-
-        for (Attribute attr : ForgeRegistries.ATTRIBUTES.getValues()) {
-            AttributeInstance instance = player.getAttribute(attr);
-            if (instance != null) {
-                for (UUID uuid : allModifierUUIDs) {
-                    instance.removeModifier(uuid);
-                }
-            }
-        }
-    }
-
-    private static ItemStack getEnchantedItemStackFromCategory(Player player, net.minecraft.world.item.enchantment.Enchantment enchantment, String categoryName) {
-        ItemStack enchantedItem = ItemStack.EMPTY;
-        int maxLevel = 0;
-
-        switch (categoryName.toUpperCase()) {
-            case "ARMOR":
-                for (EquipmentSlot slot : EquipmentSlot.values()) {
-                    if (slot.getType() == EquipmentSlot.Type.ARMOR) {
-                        ItemStack itemStack = player.getItemBySlot(slot);
-                        int level = EnchantmentHelper.getItemEnchantmentLevel(enchantment, itemStack);
-                        if (level > maxLevel) {
-                            maxLevel = level;
-                            enchantedItem = itemStack;
-                        }
-                    }
-                }
-                break;
-            case "ARMOR_FEET":
-                enchantedItem = player.getItemBySlot(EquipmentSlot.FEET);
-                break;
-            case "ARMOR_LEGS":
-                enchantedItem = player.getItemBySlot(EquipmentSlot.LEGS);
-                break;
-            case "ARMOR_CHEST":
-                enchantedItem = player.getItemBySlot(EquipmentSlot.CHEST);
-                break;
-            case "ARMOR_HEAD":
-                enchantedItem = player.getItemBySlot(EquipmentSlot.HEAD);
-                break;
-            case "WEAPON":
-            case "DIGGER":
-            case "FISHING_ROD":
-            case "TRIDENT":
-            case "BOW":
-            case "CROSSBOW":
-            case "WEAPON_AND_BOW":
-                enchantedItem = player.getMainHandItem();
-                break;
-            case "WEARABLE":
-                for (EquipmentSlot slot : EquipmentSlot.values()) {
-                    if (slot.getType() == EquipmentSlot.Type.ARMOR || slot == EquipmentSlot.MAINHAND || slot == EquipmentSlot.OFFHAND) {
-                        ItemStack itemStack = player.getItemBySlot(slot);
-                        int level = EnchantmentHelper.getItemEnchantmentLevel(enchantment, itemStack);
-                        if (level > maxLevel) {
-                            maxLevel = level;
-                            enchantedItem = itemStack;
-                        }
-                    }
-                }
-                break;
-            case "BREAKABLE":
-            case "VANISHABLE":
-                ItemStack mainHand = player.getMainHandItem();
-                int mainHandLevel = EnchantmentHelper.getItemEnchantmentLevel(enchantment, mainHand);
-                if (mainHandLevel > maxLevel) {
-                    maxLevel = mainHandLevel;
-                    enchantedItem = mainHand;
-                }
-
-                ItemStack offHand = player.getOffhandItem();
-                int offHandLevel = EnchantmentHelper.getItemEnchantmentLevel(enchantment, offHand);
-                if (offHandLevel > maxLevel) {
-                    maxLevel = offHandLevel;
-                    enchantedItem = offHand;
-                }
-
-                for (ItemStack itemStack : player.getArmorSlots()) {
-                    int level = EnchantmentHelper.getItemEnchantmentLevel(enchantment, itemStack);
-                    if (level > maxLevel) {
-                        maxLevel = level;
-                        enchantedItem = itemStack;
-                    }
-                }
-                break;
-        }
-        // Final check if the found item actually has the enchantment
-        if (EnchantmentHelper.getItemEnchantmentLevel(enchantment, enchantedItem) > 0) {
-            return enchantedItem;
-        }
-        return ItemStack.EMPTY;
-    }
-
-    private static int getEnchantmentLevelFromCategory(Player player, net.minecraft.world.item.enchantment.Enchantment enchantment, String categoryName) {
-        ItemStack itemStack = getEnchantedItemStackFromCategory(player, enchantment, categoryName);
-        return EnchantmentHelper.getItemEnchantmentLevel(enchantment, itemStack);
-    }
-
-    private static void removeModifier(Player player, Attribute attribute, UUID modifierUUID) {
-        AttributeInstance instance = player.getAttribute(attribute);
-        if (instance != null) {
-            instance.removeModifier(modifierUUID);
-        }
-    }
-
-    private static boolean isOnCooldown(UUID playerId, String cooldownKey, long currentTime) {
-        CompoundTag data = getOrCreateEnchantmentData(playerId);
-        long cooldownEnd = data.getLong(cooldownKey);
-        return currentTime < cooldownEnd;
-    }
-
-    private static void setCooldown(UUID playerId, String cooldownKey, long endTime) {
-        CompoundTag data = getOrCreateEnchantmentData(playerId);
-        data.putLong(cooldownKey, endTime);
-    }
-
-    private static CompoundTag getOrCreateEnchantmentData(UUID playerId) {
-        return playerEnchantmentData.computeIfAbsent(playerId, k -> new CompoundTag());
-    }
-
-    private static void setEnchantmentFlag(UUID playerId, String key, boolean value, int duration) {
-        CompoundTag data = getOrCreateEnchantmentData(playerId);
-        data.putBoolean(key, value);
-        data.putLong(key + "_expire", System.currentTimeMillis() + (duration * 50L));
-    }
-
-    private static boolean hasEnchantmentFlag(UUID playerId, String key) {
-        CompoundTag data = getOrCreateEnchantmentData(playerId);
-        long expireTime = data.getLong(key + "_expire");
-        if (System.currentTimeMillis() > expireTime) {
-            data.remove(key);
-            data.remove(key + "_expire");
-            return false;
-        }
-        return data.getBoolean(key);
-    }
-
     private static void handleShadowWalkerInvisibilityDamage(Player attacker) {
         if (!EnchantmentModuleConfig.ShadowWalker.enabled) return;
 
@@ -657,7 +506,6 @@ public class EnchantmentModuleHandler {
 
         if (shadowLevel > 0) {
             boolean hasInvisibility = attacker.hasEffect(MobEffects.INVISIBILITY);
-
             MobEffect trueInvisEffect = MobEffectRegistry.TRUE_INVISIBILITY.get();
             boolean hasTrueInvisibility = trueInvisEffect != null && attacker.hasEffect(trueInvisEffect);
 
@@ -665,9 +513,8 @@ public class EnchantmentModuleHandler {
                 double damageBoost = EnchantmentModuleConfig.ShadowWalker.baseDamageAmplifier +
                         (shadowLevel - 1) * EnchantmentModuleConfig.ShadowWalker.damageAmplifierPerLevel;
 
-                // Use DAMAGE_AMPLIFIER
                 applyTimedModifier(attacker, ModAttributes.DAMAGE_AMPLIFIER.get(),
-                        UUID.randomUUID(), "Shadow Walker Damage", damageBoost,
+                        SHADOW_WALKER_DAMAGE_UUID, "Shadow Walker Damage", damageBoost / 100.0,
                         AttributeModifier.Operation.ADDITION, 1);
             }
         }
@@ -713,49 +560,36 @@ public class EnchantmentModuleHandler {
             double manaBonus = getPlayerMaxMana(attacker) * EnchantmentModuleConfig.MagicalAttunement.maxManaPercent;
             final float lightningDamage = (float)(baseDamage + manaBonus);
 
-            // Schedule the lightning damage for next tick to avoid overriding
-            attacker.level().getServer().execute(() -> {
-                if (event.getEntity().isAlive()) {
-                    event.getEntity().hurt(attacker.damageSources().lightningBolt(), lightningDamage);
-                }
-            });
+            if (attacker.level().getServer() != null) {
+                attacker.level().getServer().execute(() -> {
+                    if (event.getEntity().isAlive()) {
+                        event.getEntity().hurt(attacker.damageSources().lightningBolt(), lightningDamage);
+                    }
+                });
+            }
 
-            // Consume the ready flag
             CompoundTag data = getOrCreateEnchantmentData(attackerId);
             data.remove("magical_attunement_ready");
             data.remove("magical_attunement_ready_expire");
         }
     }
 
-    private static void handleSpellbladeSpellCast(Player caster) {
-        if (!EnchantmentModuleConfig.Spellblade.enabled) return;
+    private static void updateMomentumDamage(Player player, int stacks, int level) {
+        double totalDamageBoost = stacks * (EnchantmentModuleConfig.Momentum.damageBoostPerStack +
+                (level - 1) * EnchantmentModuleConfig.Momentum.damageBoostPerLevel) / 100.0;
 
-        int spellbladeLevel = getEnchantmentLevelFromCategory(caster,
-                EnchantmentModuleRegistration.SPELLBLADE.get(), EnchantmentModuleConfig.Spellblade.category);
+        AttributeInstance damageAttr = player.getAttribute(ModAttributes.DAMAGE_AMPLIFIER.get());
+        if (damageAttr != null) {
+            damageAttr.removeModifier(MOMENTUM_DAMAGE_UUID);
+            if (stacks > 0) {
+                AttributeModifier damageMod = new AttributeModifier(
+                        MOMENTUM_DAMAGE_UUID, "Momentum Damage", totalDamageBoost,
+                        AttributeModifier.Operation.ADDITION);
+                damageAttr.addTransientModifier(damageMod);
 
-        if (spellbladeLevel > 0) {
-            UUID casterId = caster.getUUID();
-            long currentTime = System.currentTimeMillis();
-
-            String cooldownKey = "spellblade_passive_b_cooldown";
-            if (isOnCooldown(casterId, cooldownKey, currentTime)) return;
-
-            int cooldown = EnchantmentModuleConfig.Spellblade.PassiveB.baseCooldown -
-                    (spellbladeLevel - 1) * EnchantmentModuleConfig.Spellblade.PassiveB.cooldownDecreasePerLevel;
-            setCooldown(casterId, cooldownKey, currentTime + (cooldown * 50L));
-
-            double arrowDamageBoost = EnchantmentModuleConfig.Spellblade.PassiveB.baseArrowDamageBoost +
-                    (spellbladeLevel - 1) * EnchantmentModuleConfig.Spellblade.PassiveB.arrowBoostPerLevel;
-            double attackDamageBoost = EnchantmentModuleConfig.Spellblade.PassiveB.baseAttackDamageBoost +
-                    (spellbladeLevel - 1) * EnchantmentModuleConfig.Spellblade.PassiveB.attackBoostPerLevel;
-
-            applyTimedModifier(caster, getArrowDamageAttribute(), SPELLBLADE_B_ARROW_UUID,
-                    "Spellblade Arrow Damage", arrowDamageBoost / 100.0, AttributeModifier.Operation.MULTIPLY_TOTAL,
-                    EnchantmentModuleConfig.Spellblade.PassiveB.duration);
-
-            applyTimedModifier(caster, Attributes.ATTACK_DAMAGE, SPELLBLADE_B_ATTACK_UUID,
-                    "Spellblade Attack Damage", attackDamageBoost / 100.0, AttributeModifier.Operation.MULTIPLY_TOTAL,
-                    EnchantmentModuleConfig.Spellblade.PassiveB.duration);
+                trackModifier(player.getUUID(), "momentum_damage",
+                        System.currentTimeMillis() + (EnchantmentModuleConfig.Momentum.stackDuration * 50L));
+            }
         }
     }
 
@@ -768,7 +602,6 @@ public class EnchantmentModuleHandler {
             data.putInt("momentum_stacks", 0);
             data.remove("momentum_expire_time");
 
-            // Use DAMAGE_AMPLIFIER
             AttributeInstance damageAttr = player.getAttribute(ModAttributes.DAMAGE_AMPLIFIER.get());
             if (damageAttr != null) {
                 damageAttr.removeModifier(MOMENTUM_DAMAGE_UUID);
@@ -785,14 +618,13 @@ public class EnchantmentModuleHandler {
             long currentTime = System.currentTimeMillis();
 
             if (currentTime > healingEnd) {
-                // Duration expired
                 data.remove("invigorating_healing");
                 data.remove("invigorating_healing_end");
                 data.remove("invigorating_last_heal");
             } else {
                 long lastHealTime = data.getLong("invigorating_last_heal");
 
-                if (currentTime - lastHealTime >= 1000) { // 1 second
+                if (currentTime - lastHealTime >= 1000) {
                     double healAmount = data.getDouble("invigorating_healing");
                     double percentHealing = healAmount / 100.0;
                     float healingAmount = (float) (player.getMaxHealth() * percentHealing);
@@ -810,7 +642,7 @@ public class EnchantmentModuleHandler {
         int multiscaleLevel = getEnchantmentLevelFromCategory(player,
                 EnchantmentModuleRegistration.MULTISCALE.get(), EnchantmentModuleConfig.Multiscale.category);
 
-        boolean isFullHealth = player.getHealth() >= player.getMaxHealth() - 0.01f; // Small tolerance for float precision
+        boolean isFullHealth = player.getHealth() >= player.getMaxHealth() - 0.01f;
         AttributeInstance armorAttr = player.getAttribute(Attributes.ARMOR);
 
         if (armorAttr != null) {
@@ -863,9 +695,198 @@ public class EnchantmentModuleHandler {
         }
     }
 
+    private static void applyTimedModifier(Player player, Attribute attribute, UUID modifierUUID,
+                                           String name, double amount, AttributeModifier.Operation operation,
+                                           int durationTicks) {
+        if (attribute == null) return;
+
+        AttributeInstance attrInstance = player.getAttribute(attribute);
+        if (attrInstance != null) {
+            attrInstance.removeModifier(modifierUUID);
+
+            AttributeModifier modifier = new AttributeModifier(modifierUUID, name, amount, operation);
+            attrInstance.addTransientModifier(modifier);
+
+            trackModifier(player.getUUID(), modifierUUID.toString(),
+                    System.currentTimeMillis() + (durationTicks * 50L));
+        }
+    }
+
+    private static void trackModifier(UUID playerId, String modifierId, long expireTime) {
+        activeModifiers.computeIfAbsent(playerId, k -> new ConcurrentHashMap<>())
+                .put(modifierId, expireTime);
+    }
+
+    private static void cleanupExpiredModifiers(Player player) {
+        UUID playerId = player.getUUID();
+        Map<String, Long> modifiers = activeModifiers.get(playerId);
+        if (modifiers == null) return;
+
+        long currentTime = System.currentTimeMillis();
+        Iterator<Map.Entry<String, Long>> iterator = modifiers.entrySet().iterator();
+
+        while (iterator.hasNext()) {
+            Map.Entry<String, Long> entry = iterator.next();
+            if (currentTime > entry.getValue()) {
+                String modifierId = entry.getKey();
+
+                if (modifierId.equals("momentum_damage")) {
+                    removeModifier(player, ModAttributes.DAMAGE_AMPLIFIER.get(), MOMENTUM_DAMAGE_UUID);
+                } else {
+                    try {
+                        UUID uuid = UUID.fromString(modifierId);
+                        for (Attribute attr : ForgeRegistries.ATTRIBUTES.getValues()) {
+                            AttributeInstance instance = player.getAttribute(attr);
+                            if (instance != null) {
+                                instance.removeModifier(uuid);
+                            }
+                        }
+                    } catch (IllegalArgumentException ignored) {
+                    }
+                }
+
+                iterator.remove();
+            }
+        }
+    }
+
+    private static void cleanupAllModifiers(Player player) {
+        UUID[] allModifierUUIDs = {
+                REPRISAL_DAMAGE_UUID, MOMENTUM_DAMAGE_UUID, MULTISCALE_FLAT_UUID, MULTISCALE_PERCENT_UUID,
+                SHADOW_WALKER_SPEED_UUID, PERFECTIONIST_ATTACK_SPEED_UUID, PERFECTIONIST_CAST_SPEED_UUID,
+                INVIGORATING_SPEED_UUID, LIFE_SURGE_ARMOR_FLAT_UUID, LIFE_SURGE_ARMOR_PERCENT_UUID,
+                LIFE_SURGE_LIFESTEAL_UUID, LIFE_SURGE_SPELL_LEECH_UUID, SPELLBLADE_A_SPELL_POWER_UUID,
+                SPELLBLADE_B_ARROW_UUID, SPELLBLADE_B_ATTACK_UUID, HUNTER_CRIT_DAMAGE_UUID, HUNTER_CRIT_CHANCE_UUID,
+                SHADOW_WALKER_DAMAGE_UUID
+        };
+
+        for (Attribute attr : ForgeRegistries.ATTRIBUTES.getValues()) {
+            AttributeInstance instance = player.getAttribute(attr);
+            if (instance != null) {
+                for (UUID uuid : allModifierUUIDs) {
+                    instance.removeModifier(uuid);
+                }
+            }
+        }
+    }
+
+    private static ItemStack getEnchantedItemStackFromCategory(Player player, net.minecraft.world.item.enchantment.Enchantment enchantment, String categoryName) {
+        ItemStack enchantedItem = ItemStack.EMPTY;
+        int maxLevel = 0;
+
+        switch (categoryName.toUpperCase()) {
+            case "ARMOR":
+                for (EquipmentSlot slot : EquipmentSlot.values()) {
+                    if (slot.getType() == EquipmentSlot.Type.ARMOR) {
+                        ItemStack itemStack = player.getItemBySlot(slot);
+                        int level = EnchantmentHelper.getItemEnchantmentLevel(enchantment, itemStack);
+                        if (level > maxLevel) {
+                            maxLevel = level;
+                            enchantedItem = itemStack;
+                        }
+                    }
+                }
+                break;
+            case "ARMOR_FEET":
+                enchantedItem = player.getItemBySlot(EquipmentSlot.FEET);
+                break;
+            case "ARMOR_LEGS":
+                enchantedItem = player.getItemBySlot(EquipmentSlot.LEGS);
+                break;
+            case "ARMOR_CHEST":
+                enchantedItem = player.getItemBySlot(EquipmentSlot.CHEST);
+                break;
+            case "ARMOR_HEAD":
+                enchantedItem = player.getItemBySlot(EquipmentSlot.HEAD);
+                break;
+            case "WEAPON":
+            case "DIGGER":
+            case "FISHING_ROD":
+            case "TRIDENT":
+            case "BOW":
+            case "CROSSBOW":
+            case "WEAPON_AND_BOW":
+                enchantedItem = player.getMainHandItem();
+                break;
+            case "WEARABLE":
+                for (EquipmentSlot slot : EquipmentSlot.values()) {
+                    ItemStack itemStack = player.getItemBySlot(slot);
+                    int level = EnchantmentHelper.getItemEnchantmentLevel(enchantment, itemStack);
+                    if (level > maxLevel) {
+                        maxLevel = level;
+                        enchantedItem = itemStack;
+                    }
+                }
+                break;
+            case "BREAKABLE":
+            case "VANISHABLE":
+                for (ItemStack itemStack : player.getInventory().items) {
+                    int level = EnchantmentHelper.getItemEnchantmentLevel(enchantment, itemStack);
+                    if (level > maxLevel) {
+                        maxLevel = level;
+                        enchantedItem = itemStack;
+                    }
+                }
+                break;
+        }
+
+        if (EnchantmentHelper.getItemEnchantmentLevel(enchantment, enchantedItem) > 0) {
+            return enchantedItem;
+        }
+        return ItemStack.EMPTY;
+    }
+
+    private static int getEnchantmentLevelFromCategory(Player player, net.minecraft.world.item.enchantment.Enchantment enchantment, String categoryName) {
+        ItemStack itemStack = getEnchantedItemStackFromCategory(player, enchantment, categoryName);
+        return EnchantmentHelper.getItemEnchantmentLevel(enchantment, itemStack);
+    }
+
+    private static void removeModifier(Player player, Attribute attribute, UUID modifierUUID) {
+        AttributeInstance instance = player.getAttribute(attribute);
+        if (instance != null) {
+            instance.removeModifier(modifierUUID);
+        }
+    }
+
+    private static boolean isOnCooldown(UUID playerId, String cooldownKey, long currentTime) {
+        CompoundTag data = getOrCreateEnchantmentData(playerId);
+        long cooldownEnd = data.getLong(cooldownKey);
+        return currentTime < cooldownEnd;
+    }
+
+    private static void setCooldown(UUID playerId, String cooldownKey, long endTime) {
+        CompoundTag data = getOrCreateEnchantmentData(playerId);
+        data.putLong(cooldownKey, endTime);
+    }
+
+    private static CompoundTag getOrCreateEnchantmentData(UUID playerId) {
+        return playerEnchantmentData.computeIfAbsent(playerId, k -> new CompoundTag());
+    }
+
+    private static void setEnchantmentFlag(UUID playerId, String key, boolean value, int duration) {
+        CompoundTag data = getOrCreateEnchantmentData(playerId);
+        data.putBoolean(key, value);
+        data.putLong(key + "_expire", System.currentTimeMillis() + (duration * 50L));
+    }
+
+    private static boolean hasEnchantmentFlag(UUID playerId, String key) {
+        CompoundTag data = getOrCreateEnchantmentData(playerId);
+        long expireTime = data.getLong(key + "_expire");
+        if (System.currentTimeMillis() > expireTime) {
+            data.remove(key);
+            data.remove(key + "_expire");
+            return false;
+        }
+        return data.getBoolean(key);
+    }
+
     private static double getPlayerMaxMana(Player player) {
-        AttributeInstance manaAttr = player.getAttribute(getMaxManaAttribute());
-        return manaAttr != null ? manaAttr.getValue() : 100.0;
+        Attribute manaAttr = getMaxManaAttribute();
+        if (manaAttr != null) {
+            AttributeInstance manaInstance = player.getAttribute(manaAttr);
+            return manaInstance != null ? manaInstance.getValue() : 100.0;
+        }
+        return 100.0;
     }
 
     private static Attribute getSpellPowerAttribute() {
@@ -890,13 +911,5 @@ public class EnchantmentModuleHandler {
 
     private static Attribute getCritChanceAttribute() {
         return ForgeRegistries.ATTRIBUTES.getValue(new ResourceLocation("attributeslib", "crit_chance"));
-    }
-
-    private static Attribute getLifestealAttribute() {
-        return ModAttributes.LIFESTEAL.get();
-    }
-
-    private static Attribute getSpellLeechAttribute() {
-        return ModAttributes.SPELL_LEECH.get();
     }
 }
