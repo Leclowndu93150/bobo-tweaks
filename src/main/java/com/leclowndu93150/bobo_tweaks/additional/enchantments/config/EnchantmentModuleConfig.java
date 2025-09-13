@@ -15,7 +15,7 @@ import java.util.*;
 
 public class EnchantmentModuleConfig {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
-    private static final File CONFIG_FILE = new File("config/bobo_tweaks_enchantments.json");
+    private static final File CONFIG_FILE = new File("config/bobotweaks/enchantments.json");
     
     public static boolean enableEnchantmentModule = true;
     
@@ -109,6 +109,7 @@ public class EnchantmentModuleConfig {
         public static double baseCritDamageBoost = 20.0;
         public static double critDamagePerLevel = 10.0;
         public static double flatCritChance = 15.0;
+        public static int markDuration = -1; // -1 for indefinite, or positive value for seconds
     }
     
     public static class Multiscale {
@@ -322,6 +323,7 @@ public class EnchantmentModuleConfig {
             if (hunter.has("base_crit_damage_boost")) Hunter.baseCritDamageBoost = hunter.get("base_crit_damage_boost").getAsDouble();
             if (hunter.has("crit_damage_per_level")) Hunter.critDamagePerLevel = hunter.get("crit_damage_per_level").getAsDouble();
             if (hunter.has("flat_crit_chance")) Hunter.flatCritChance = hunter.get("flat_crit_chance").getAsDouble();
+            if (hunter.has("mark_duration")) Hunter.markDuration = hunter.get("mark_duration").getAsInt();
         }
     }
     
@@ -554,16 +556,18 @@ public class EnchantmentModuleConfig {
     
     private static void saveHunter(JsonObject json) {
         JsonObject hunter = new JsonObject();
-        hunter.addProperty("_description", "Hunter: Increases critical strike damage and chance.");
+        hunter.addProperty("_description", "Hunter: Marks enemies and increases critical strike damage and chance against marked targets.");
         hunter.addProperty("enabled", Hunter.enabled);
         hunter.addProperty("category", Hunter.category);
         hunter.addProperty("max_level", Hunter.maxLevel);
-        hunter.addProperty("_base_crit_damage_boost_description", "Base critical damage boost in percentage.");
+        hunter.addProperty("_base_crit_damage_boost_description", "Base critical damage boost against marked targets in percentage.");
         hunter.addProperty("base_crit_damage_boost", Hunter.baseCritDamageBoost);
-        hunter.addProperty("_crit_damage_per_level_description", "Additional critical damage boost per level in percentage.");
+        hunter.addProperty("_crit_damage_per_level_description", "Additional critical damage boost per level against marked targets in percentage.");
         hunter.addProperty("crit_damage_per_level", Hunter.critDamagePerLevel);
-        hunter.addProperty("_flat_crit_chance_description", "Flat critical strike chance increase in percentage.");
+        hunter.addProperty("_flat_crit_chance_description", "Flat critical strike chance increase against marked targets in percentage.");
         hunter.addProperty("flat_crit_chance", Hunter.flatCritChance);
+        hunter.addProperty("_mark_duration_description", "Duration of mark effect in seconds. Set to -1 for indefinite.");
+        hunter.addProperty("mark_duration", Hunter.markDuration);
         json.add("hunter", hunter);
     }
     

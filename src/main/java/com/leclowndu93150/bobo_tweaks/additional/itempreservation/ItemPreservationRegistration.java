@@ -8,7 +8,7 @@ import net.minecraftforge.fml.config.ModConfig;
 public class ItemPreservationRegistration {
     
     public static void init() {
-        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, ItemPreservationConfig.SPEC, "bobo_tweaks-itempreservation.toml");
+        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, ItemPreservationConfig.SPEC, "bobotweaks/itempreservation.toml");
         
         MinecraftForge.EVENT_BUS.register(ItemPreservationHandler.class);
     }

@@ -12,7 +12,7 @@ import java.util.*;
 
 public class AttackEffectsConfig {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
-    private static final Path CONFIG_PATH = FMLPaths.CONFIGDIR.get().resolve("bobo_tweaks-attack_effects.json");
+    private static final Path CONFIG_PATH = FMLPaths.CONFIGDIR.get().resolve("bobotweaks/attack_effects.json");
     
     private static AttackEffectsData data = new AttackEffectsData();
     

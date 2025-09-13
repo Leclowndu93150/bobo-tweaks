@@ -67,6 +67,12 @@ public class ModPotions {
     public static final RegistryObject<MobEffect> PENUMBRAL_MARK = MOB_EFFECTS.register("penumbral_mark",
         PenumbralMarkEffect::new);
     
+    public static final RegistryObject<MobEffect> HUNTER = MOB_EFFECTS.register("hunter",
+        HunterEffect::new);
+    
+    public static final RegistryObject<MobEffect> MARKED = MOB_EFFECTS.register("marked",
+        MarkedEffect::new);
+    
     public static void register(IEventBus eventBus) {
         MOB_EFFECTS.register(eventBus);
         POTIONS.register(eventBus);

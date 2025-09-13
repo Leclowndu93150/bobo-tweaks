@@ -11,7 +11,7 @@ import net.minecraftforge.fml.loading.FMLEnvironment;
 public class AutoBowRegistration {
     
     public static void init() {
-        ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, AutoBowConfig.SPEC, "bobo_tweaks-autobow.toml");
+        ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, AutoBowConfig.SPEC, "bobotweaks/autobow.toml");
 
         if (FMLEnvironment.dist == Dist.CLIENT) {
             MinecraftForge.EVENT_BUS.register(AutoBowClientHandler.class);

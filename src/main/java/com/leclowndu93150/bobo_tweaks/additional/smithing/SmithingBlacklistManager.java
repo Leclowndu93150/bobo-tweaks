@@ -19,7 +19,7 @@ import java.util.Set;
 
 public class SmithingBlacklistManager {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
-    private static final Path CONFIG_PATH = FMLPaths.CONFIGDIR.get().resolve("bobo_tweaks_smithing_blacklist.json");
+    private static final Path CONFIG_PATH = FMLPaths.CONFIGDIR.get().resolve("bobotweaks/smithing_blacklist.json");
     private static Set<String> blacklistedItemIds = new HashSet<>();
     private static Set<Item> blacklistedItems = new HashSet<>();
     private static boolean loaded = false;

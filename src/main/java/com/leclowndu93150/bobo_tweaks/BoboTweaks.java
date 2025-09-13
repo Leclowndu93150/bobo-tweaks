@@ -64,8 +64,8 @@ public class BoboTweaks {
         modEventBus.register(ModEventHandler.class);
         forgeEventBus.register(new ModEventHandler());
 
-        ModLoadingContext.get().registerConfig(Type.COMMON, ModConfig.COMMON_SPEC);
-        ModLoadingContext.get().registerConfig(Type.CLIENT, ModConfig.CLIENT_SPEC);
+        ModLoadingContext.get().registerConfig(Type.COMMON, ModConfig.COMMON_SPEC, "bobotweaks/bobo_tweaks-common.toml");
+        ModLoadingContext.get().registerConfig(Type.CLIENT, ModConfig.CLIENT_SPEC, "bobotweaks/bobo_tweaks-client.toml");
 
         AutoBowRegistration.init();
         ItemPreservationRegistration.init();

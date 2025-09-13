@@ -16,7 +16,7 @@ public class ExclusiveItemsRegistration {
         ModLoadingContext.get().registerConfig(
             ModConfig.Type.COMMON, 
             ExclusiveItemsConfig.SPEC, 
-            "bobo_tweaks-exclusive_items.toml"
+            "bobotweaks/exclusive_items.toml"
         );
     }
 }

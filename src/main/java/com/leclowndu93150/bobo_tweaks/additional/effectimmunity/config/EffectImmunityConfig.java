@@ -12,7 +12,7 @@ import java.util.*;
 
 public class EffectImmunityConfig {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
-    private static final Path CONFIG_PATH = FMLPaths.CONFIGDIR.get().resolve("bobo_tweaks-effect_immunity.json");
+    private static final Path CONFIG_PATH = FMLPaths.CONFIGDIR.get().resolve("bobotweaks/effect_immunity.json");
     
     private static EffectImmunityData data = new EffectImmunityData();
     

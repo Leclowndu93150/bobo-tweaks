@@ -19,7 +19,7 @@ import java.util.regex.Pattern;
 
 public class VillagerModuleConfig {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
-    private static final File CONFIG_FILE = new File("config/bobo_tweaks_villager.json");
+    private static final File CONFIG_FILE = new File("config/bobotweaks/villager.json");
     
     // Config values
     public static boolean enableVillagerModule = true;

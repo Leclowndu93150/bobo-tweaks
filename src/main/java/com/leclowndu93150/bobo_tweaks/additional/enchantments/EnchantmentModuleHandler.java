@@ -2,6 +2,8 @@ package com.leclowndu93150.bobo_tweaks.additional.enchantments;
 
 import com.leclowndu93150.bobo_tweaks.additional.enchantments.config.EnchantmentModuleConfig;
 import com.leclowndu93150.bobo_tweaks.registry.ModAttributes;
+import com.leclowndu93150.bobo_tweaks.registry.ModPotions;
+import dev.shadowsoffire.attributeslib.api.ALObjects;
 import io.redspace.ironsspellbooks.registries.MobEffectRegistry;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -44,6 +46,7 @@ import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 @Mod.EventBusSubscriber(modid = "bobo_tweaks", bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class EnchantmentModuleHandler {
@@ -141,6 +144,8 @@ public class EnchantmentModuleHandler {
         handleMultiscaleContinuous(player);
 
         handlePeriodicEffects(player);
+        
+        handleHunterEffect(player);
     }
 
     @SubscribeEvent
@@ -178,7 +183,7 @@ public class EnchantmentModuleHandler {
             Attribute castTimeReduction = getCastTimeReductionAttribute();
             if (castTimeReduction != null) {
                 applyTimedModifier(player, castTimeReduction, PERFECTIONIST_CAST_SPEED_UUID,
-                        "Perfectionist Cast Speed", castSpeedBoost / 100.0,
+                        "Perfectionist Cast Speed", castSpeedBoost,
                         AttributeModifier.Operation.ADDITION,
                         EnchantmentModuleConfig.Perfectionist.duration);
             }
@@ -252,7 +257,7 @@ public class EnchantmentModuleHandler {
             if (isDirectKill) {
                 MobEffect trueInvis = MobEffectRegistry.TRUE_INVISIBILITY.get();
                 if (trueInvis != null) {
-                    killer.addEffect(new MobEffectInstance(trueInvis, EnchantmentModuleConfig.ShadowWalker.invisibilityDuration, 1 ));
+                    killer.addEffect(new MobEffectInstance(trueInvis, EnchantmentModuleConfig.ShadowWalker.invisibilityDuration, 0));
                 }
             }
 
@@ -303,8 +308,8 @@ public class EnchantmentModuleHandler {
                 Attribute spellPower = getSpellPowerAttribute();
                 if (spellPower != null) {
                     applyTimedModifier(attacker, spellPower, SPELLBLADE_A_SPELL_POWER_UUID,
-                            "Spellblade Spell Power", spellPowerBoost / 100.0,
-                            AttributeModifier.Operation.MULTIPLY_TOTAL,
+                            "Spellblade Spell Power", spellPowerBoost,
+                            AttributeModifier.Operation.ADDITION,
                             EnchantmentModuleConfig.Spellblade.PassiveA.duration);
                 }
             }
@@ -333,12 +338,9 @@ public class EnchantmentModuleHandler {
             double attackDamageBoost = EnchantmentModuleConfig.Spellblade.PassiveB.baseAttackDamageBoost +
                     (spellbladeLevel - 1) * EnchantmentModuleConfig.Spellblade.PassiveB.attackBoostPerLevel;
 
-            Attribute arrowDamage = getArrowDamageAttribute();
-            if (arrowDamage != null) {
-                applyTimedModifier(caster, arrowDamage, SPELLBLADE_B_ARROW_UUID,
-                        "Spellblade Arrow Damage", arrowDamageBoost / 100.0, AttributeModifier.Operation.MULTIPLY_TOTAL,
-                        EnchantmentModuleConfig.Spellblade.PassiveB.duration);
-            }
+            applyTimedModifier(caster, ALObjects.Attributes.ARROW_DAMAGE.get(), SPELLBLADE_B_ARROW_UUID,
+                    "Spellblade Arrow Damage", arrowDamageBoost / 100.0, AttributeModifier.Operation.MULTIPLY_TOTAL,
+                    EnchantmentModuleConfig.Spellblade.PassiveB.duration);
 
             applyTimedModifier(caster, Attributes.ATTACK_DAMAGE, SPELLBLADE_B_ATTACK_UUID,
                     "Spellblade Attack Damage", attackDamageBoost / 100.0, AttributeModifier.Operation.MULTIPLY_TOTAL,
@@ -384,7 +386,7 @@ public class EnchantmentModuleHandler {
             double lifestealBoost = EnchantmentModuleConfig.LifeSurge.flatLifestealPerLevel * lifeSurgeLevel;
             double spellLeechBoost = EnchantmentModuleConfig.LifeSurge.flatSpellStealPerLevel * lifeSurgeLevel;
 
-            applyTimedModifier(player, ModAttributes.LIFESTEAL.get(), LIFE_SURGE_LIFESTEAL_UUID,
+            applyTimedModifier(player, ALObjects.Attributes.LIFE_STEAL.get(), LIFE_SURGE_LIFESTEAL_UUID,
                     "Life Surge Lifesteal", lifestealBoost / 100.0, AttributeModifier.Operation.ADDITION,
                     EnchantmentModuleConfig.LifeSurge.duration);
 
@@ -439,9 +441,11 @@ public class EnchantmentModuleHandler {
             handleShadowWalkerInvisibilityDamage(attacker);
 
             if (hasEnchantmentFlag(attacker.getUUID(), "reprisal_active")) {
-                attacker.level().playSound(null, attacker.getX(), attacker.getY(), attacker.getZ(),
-                        SoundEvents.ELDER_GUARDIAN_HURT_LAND, SoundSource.PLAYERS, 1.0F, 1.0F);
-                attacker.sendSystemMessage(Component.literal("Reprisal: +15% Damage!"));
+                if (!attacker.level().isClientSide()) {
+                    attacker.level().playSound(null, attacker.blockPosition(), SoundEvents.ELDER_GUARDIAN_HURT_LAND, 
+                            SoundSource.PLAYERS, 1.0F, 1.0F);
+                    attacker.sendSystemMessage(Component.literal("Reprisal: +15% Damage!"));
+                }
             }
         }
     }
@@ -452,13 +456,26 @@ public class EnchantmentModuleHandler {
         int hunterLevel = EnchantmentHelper.getItemEnchantmentLevel(
                 EnchantmentModuleRegistration.HUNTER.get(), weapon);
 
-        if (hunterLevel > 0) {
+        if (hunterLevel > 0 && attacker.hasEffect(ModPotions.HUNTER.get())) {
             UUID attackerId = attacker.getUUID();
             UUID targetId = target.getUUID();
 
-            hunterMarks.entrySet().removeIf(entry -> entry.getValue().equals(attackerId));
-            hunterMarks.put(targetId, attackerId);
-            target.getPersistentData().putString("hunter_marked_by", attackerId.toString());
+            UUID currentMarkId = hunterMarks.entrySet().stream()
+                    .filter(entry -> entry.getValue().equals(attackerId))
+                    .map(Map.Entry::getKey)
+                    .findFirst().orElse(null);
+
+            if (currentMarkId == null || currentMarkId.equals(targetId)) {
+                hunterMarks.put(targetId, attackerId);
+                
+                int markDuration;
+                if (EnchantmentModuleConfig.Hunter.markDuration < 0) {
+                    markDuration = 20 * 60 * 60 * 24;
+                } else {
+                    markDuration = EnchantmentModuleConfig.Hunter.markDuration * 20;
+                }
+                target.addEffect(new MobEffectInstance(ModPotions.MARKED.get(), markDuration, 0, false, true));
+            }
         }
     }
 
@@ -468,26 +485,25 @@ public class EnchantmentModuleHandler {
         int hunterLevel = EnchantmentHelper.getItemEnchantmentLevel(
                 EnchantmentModuleRegistration.HUNTER.get(), weapon);
 
-        if (hunterLevel > 0) {
+        if (hunterLevel > 0 && attacker.hasEffect(ModPotions.HUNTER.get()) && 
+                target.hasEffect(ModPotions.MARKED.get())) {
+            
             UUID attackerId = attacker.getUUID();
-            String markedBy = target.getPersistentData().getString("hunter_marked_by");
+            UUID markedBy = hunterMarks.entrySet().stream()
+                    .filter(entry -> entry.getKey().equals(target.getUUID()))
+                    .map(Map.Entry::getValue)
+                    .findFirst().orElse(null);
 
-            if (attackerId.toString().equals(markedBy)) {
+            if (attackerId.equals(markedBy)) {
                 double critDamageBoost = EnchantmentModuleConfig.Hunter.baseCritDamageBoost +
                         (hunterLevel - 1) * EnchantmentModuleConfig.Hunter.critDamagePerLevel;
                 double critChanceBoost = EnchantmentModuleConfig.Hunter.flatCritChance;
 
-                Attribute critDamage = getCritDamageAttribute();
-                if (critDamage != null) {
-                    applyTimedModifier(attacker, critDamage, HUNTER_CRIT_DAMAGE_UUID,
-                            "Hunter Crit Damage", critDamageBoost / 100.0, AttributeModifier.Operation.MULTIPLY_TOTAL, 2);
-                }
+                applyTimedModifier(attacker, ALObjects.Attributes.CRIT_DAMAGE.get(), HUNTER_CRIT_DAMAGE_UUID,
+                        "Hunter Crit Damage", critDamageBoost / 100.0, AttributeModifier.Operation.MULTIPLY_BASE, 10);
 
-                Attribute critChance = getCritChanceAttribute();
-                if (critChance != null) {
-                    applyTimedModifier(attacker, critChance, HUNTER_CRIT_CHANCE_UUID,
-                            "Hunter Crit Chance", critChanceBoost / 100.0, AttributeModifier.Operation.ADDITION, 2);
-                }
+                applyTimedModifier(attacker, ALObjects.Attributes.CRIT_CHANCE.get(), HUNTER_CRIT_CHANCE_UUID,
+                        "Hunter Crit Chance", critChanceBoost / 100.0, AttributeModifier.Operation.ADDITION, 10);
             }
         }
     }
@@ -495,7 +511,7 @@ public class EnchantmentModuleHandler {
     private static void handleHunterMarkRemoval(LivingEntity deadEntity) {
         UUID deadId = deadEntity.getUUID();
         hunterMarks.remove(deadId);
-        deadEntity.getPersistentData().remove("hunter_marked_by");
+        deadEntity.removeEffect(ModPotions.MARKED.get());
     }
 
     private static void handleShadowWalkerInvisibilityDamage(Player attacker) {
@@ -522,6 +538,41 @@ public class EnchantmentModuleHandler {
 
     private static void handlePeriodicEffects(Player player) {
         handleMagicalAttunementPeriodic(player);
+    }
+    
+    private static void handleHunterEffect(Player player) {
+        if (!EnchantmentModuleConfig.Hunter.enabled) return;
+        
+        int hunterLevel = getEnchantmentLevelFromCategory(player,
+                EnchantmentModuleRegistration.HUNTER.get(), EnchantmentModuleConfig.Hunter.category);
+        
+        if (hunterLevel > 0) {
+            if (!player.hasEffect(ModPotions.HUNTER.get()) || 
+                    (player.getEffect(ModPotions.HUNTER.get()) != null && 
+                     player.getEffect(ModPotions.HUNTER.get()).getDuration() < 100)) {
+                player.addEffect(new MobEffectInstance(ModPotions.HUNTER.get(), 200, 0, false, false));
+            }
+        } else {
+            if (player.hasEffect(ModPotions.HUNTER.get())) {
+                player.removeEffect(ModPotions.HUNTER.get());
+                
+                UUID playerId = player.getUUID();
+                List<UUID> marksToRemove = hunterMarks.entrySet().stream()
+                        .filter(entry -> entry.getValue().equals(playerId))
+                        .map(Map.Entry::getKey)
+                        .collect(Collectors.toList());
+                
+                for (UUID markId : marksToRemove) {
+                    hunterMarks.remove(markId);
+                    for (Entity entity : player.level().getEntities(player, player.getBoundingBox().inflate(100))) {
+                        if (entity.getUUID().equals(markId) && entity instanceof LivingEntity le) {
+                            le.removeEffect(ModPotions.MARKED.get());
+                            break;
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private static void handleMagicalAttunementPeriodic(Player player) {
@@ -901,15 +952,4 @@ public class EnchantmentModuleHandler {
         return ForgeRegistries.ATTRIBUTES.getValue(new ResourceLocation("irons_spellbooks", "cast_time_reduction"));
     }
 
-    private static Attribute getArrowDamageAttribute() {
-        return ForgeRegistries.ATTRIBUTES.getValue(new ResourceLocation("attributeslib", "arrow_damage"));
-    }
-
-    private static Attribute getCritDamageAttribute() {
-        return ForgeRegistries.ATTRIBUTES.getValue(new ResourceLocation("attributeslib", "crit_damage"));
-    }
-
-    private static Attribute getCritChanceAttribute() {
-        return ForgeRegistries.ATTRIBUTES.getValue(new ResourceLocation("attributeslib", "crit_chance"));
-    }
 }
