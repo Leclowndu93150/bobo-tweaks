@@ -157,6 +157,48 @@ public class EnchantmentModuleConfig {
         public static double baseDamageAmplifier = 20.0;
         public static double damageAmplifierPerLevel = 10.0;
     }
+    
+    public static class Initiative {
+        public static boolean enabled = true;
+        public static String category = "WEAPON";
+        public static int maxLevel = 3;
+        public static double baseFlatDamageBoost = 2.0;
+        public static double flatDamageBoostPerLevel = 1.0;
+        public static double percentDamageBoost = 10.0;
+        public static double armorScaleFactor = 0.01;
+        public static double baseArmorBoost = 10.0;
+        public static double armorBoostPerLevel = 5.0;
+        public static int baseDuration = 100;
+        public static int durationPerLevel = 20;
+        public static int notHurtTimer = 60;
+    }
+    
+    public static class SaintsPledge {
+        public static boolean enabled = true;
+        public static String category = "BREAKABLE";
+        public static int maxLevel = 3;
+        public static double maxHealthDrained = 0.15;
+        public static double baseHealScale = 1.5;
+        public static double healScalePerLevel = 0.5;
+        public static double baseLifesteal = 10.0;
+        public static double lifestealPerLevel = 5.0;
+        public static double lifestealCapPerLevel = 50.0;
+        public static int duration = 200;
+        public static int crouchTime = 60;
+    }
+    
+    public static class LeadTheCharge {
+        public static boolean enabled = true;
+        public static String category = "WEAPON";
+        public static int maxLevel = 3;
+        public static double enemySlowPercent = 30.0;
+        public static double baseAttackSpeed = 15.0;
+        public static double baseCastSpeed = 20.0;
+        public static double armorScaleFactor = 0.01;
+        public static int duration = 100;
+        public static int baseCooldown = 200;
+        public static int cooldownDecreasePerLevel = 20;
+    }
 
     public static EnchantmentCategory getCategoryFromString(String categoryName) {
         return switch (categoryName.toUpperCase()) {
@@ -199,6 +241,9 @@ public class EnchantmentModuleConfig {
                 loadInvigoratingDefenses(json);
                 loadLifeSurge(json);
                 loadShadowWalker(json);
+                loadInitiative(json);
+                loadSaintsPledge(json);
+                loadLeadTheCharge(json);
                 
             } catch (IOException e) {
                 e.printStackTrace();
@@ -385,6 +430,57 @@ public class EnchantmentModuleConfig {
         }
     }
     
+    private static void loadInitiative(JsonObject json) {
+        if (json.has("initiative")) {
+            JsonObject initiative = json.getAsJsonObject("initiative");
+            if (initiative.has("enabled")) Initiative.enabled = initiative.get("enabled").getAsBoolean();
+            if (initiative.has("category")) Initiative.category = initiative.get("category").getAsString();
+            if (initiative.has("max_level")) Initiative.maxLevel = initiative.get("max_level").getAsInt();
+            if (initiative.has("base_flat_damage_boost")) Initiative.baseFlatDamageBoost = initiative.get("base_flat_damage_boost").getAsDouble();
+            if (initiative.has("flat_damage_boost_per_level")) Initiative.flatDamageBoostPerLevel = initiative.get("flat_damage_boost_per_level").getAsDouble();
+            if (initiative.has("percent_damage_boost")) Initiative.percentDamageBoost = initiative.get("percent_damage_boost").getAsDouble();
+            if (initiative.has("armor_scale_factor")) Initiative.armorScaleFactor = initiative.get("armor_scale_factor").getAsDouble();
+            if (initiative.has("base_armor_boost")) Initiative.baseArmorBoost = initiative.get("base_armor_boost").getAsDouble();
+            if (initiative.has("armor_boost_per_level")) Initiative.armorBoostPerLevel = initiative.get("armor_boost_per_level").getAsDouble();
+            if (initiative.has("base_duration")) Initiative.baseDuration = initiative.get("base_duration").getAsInt();
+            if (initiative.has("duration_per_level")) Initiative.durationPerLevel = initiative.get("duration_per_level").getAsInt();
+            if (initiative.has("not_hurt_timer")) Initiative.notHurtTimer = initiative.get("not_hurt_timer").getAsInt();
+        }
+    }
+    
+    private static void loadSaintsPledge(JsonObject json) {
+        if (json.has("saints_pledge")) {
+            JsonObject saints = json.getAsJsonObject("saints_pledge");
+            if (saints.has("enabled")) SaintsPledge.enabled = saints.get("enabled").getAsBoolean();
+            if (saints.has("category")) SaintsPledge.category = saints.get("category").getAsString();
+            if (saints.has("max_level")) SaintsPledge.maxLevel = saints.get("max_level").getAsInt();
+            if (saints.has("max_health_drained")) SaintsPledge.maxHealthDrained = saints.get("max_health_drained").getAsDouble();
+            if (saints.has("base_heal_scale")) SaintsPledge.baseHealScale = saints.get("base_heal_scale").getAsDouble();
+            if (saints.has("heal_scale_per_level")) SaintsPledge.healScalePerLevel = saints.get("heal_scale_per_level").getAsDouble();
+            if (saints.has("base_lifesteal")) SaintsPledge.baseLifesteal = saints.get("base_lifesteal").getAsDouble();
+            if (saints.has("lifesteal_per_level")) SaintsPledge.lifestealPerLevel = saints.get("lifesteal_per_level").getAsDouble();
+            if (saints.has("lifesteal_cap_per_level")) SaintsPledge.lifestealCapPerLevel = saints.get("lifesteal_cap_per_level").getAsDouble();
+            if (saints.has("duration")) SaintsPledge.duration = saints.get("duration").getAsInt();
+            if (saints.has("crouch_time")) SaintsPledge.crouchTime = saints.get("crouch_time").getAsInt();
+        }
+    }
+    
+    private static void loadLeadTheCharge(JsonObject json) {
+        if (json.has("lead_the_charge")) {
+            JsonObject lead = json.getAsJsonObject("lead_the_charge");
+            if (lead.has("enabled")) LeadTheCharge.enabled = lead.get("enabled").getAsBoolean();
+            if (lead.has("category")) LeadTheCharge.category = lead.get("category").getAsString();
+            if (lead.has("max_level")) LeadTheCharge.maxLevel = lead.get("max_level").getAsInt();
+            if (lead.has("enemy_slow_percent")) LeadTheCharge.enemySlowPercent = lead.get("enemy_slow_percent").getAsDouble();
+            if (lead.has("base_attack_speed")) LeadTheCharge.baseAttackSpeed = lead.get("base_attack_speed").getAsDouble();
+            if (lead.has("base_cast_speed")) LeadTheCharge.baseCastSpeed = lead.get("base_cast_speed").getAsDouble();
+            if (lead.has("armor_scale_factor")) LeadTheCharge.armorScaleFactor = lead.get("armor_scale_factor").getAsDouble();
+            if (lead.has("duration")) LeadTheCharge.duration = lead.get("duration").getAsInt();
+            if (lead.has("base_cooldown")) LeadTheCharge.baseCooldown = lead.get("base_cooldown").getAsInt();
+            if (lead.has("cooldown_decrease_per_level")) LeadTheCharge.cooldownDecreasePerLevel = lead.get("cooldown_decrease_per_level").getAsInt();
+        }
+    }
+    
     public static void save() {
         try {
             CONFIG_FILE.getParentFile().mkdirs();
@@ -403,6 +499,9 @@ public class EnchantmentModuleConfig {
             saveInvigoratingDefenses(json);
             saveLifeSurge(json);
             saveShadowWalker(json);
+            saveInitiative(json);
+            saveSaintsPledge(json);
+            saveLeadTheCharge(json);
             
             try (FileWriter writer = new FileWriter(CONFIG_FILE)) {
                 GSON.toJson(json, writer);
@@ -649,5 +748,80 @@ public class EnchantmentModuleConfig {
         shadow.addProperty("_damage_amplifier_per_level_description", "Additional damage amplifier per level in percentage.");
         shadow.addProperty("damage_amplifier_per_level", ShadowWalker.damageAmplifierPerLevel);
         json.add("shadow_walker", shadow);
+    }
+    
+    private static void saveInitiative(JsonObject json) {
+        JsonObject initiative = new JsonObject();
+        initiative.addProperty("_description", "Initiative: Boosts damage and armor when attacking first.");
+        initiative.addProperty("enabled", Initiative.enabled);
+        initiative.addProperty("category", Initiative.category);
+        initiative.addProperty("max_level", Initiative.maxLevel);
+        initiative.addProperty("_base_flat_damage_boost_description", "Base flat damage boost.");
+        initiative.addProperty("base_flat_damage_boost", Initiative.baseFlatDamageBoost);
+        initiative.addProperty("_flat_damage_boost_per_level_description", "Additional flat damage boost per level.");
+        initiative.addProperty("flat_damage_boost_per_level", Initiative.flatDamageBoostPerLevel);
+        initiative.addProperty("_percent_damage_boost_description", "Percentage damage boost.");
+        initiative.addProperty("percent_damage_boost", Initiative.percentDamageBoost);
+        initiative.addProperty("_armor_scale_factor_description", "Armor scale factor for damage calculation.");
+        initiative.addProperty("armor_scale_factor", Initiative.armorScaleFactor);
+        initiative.addProperty("_base_armor_boost_description", "Base armor boost in percentage.");
+        initiative.addProperty("base_armor_boost", Initiative.baseArmorBoost);
+        initiative.addProperty("_armor_boost_per_level_description", "Additional armor boost per level in percentage.");
+        initiative.addProperty("armor_boost_per_level", Initiative.armorBoostPerLevel);
+        initiative.addProperty("_base_duration_description", "Base duration of the effect in ticks.");
+        initiative.addProperty("base_duration", Initiative.baseDuration);
+        initiative.addProperty("_duration_per_level_description", "Additional duration per level in ticks.");
+        initiative.addProperty("duration_per_level", Initiative.durationPerLevel);
+        initiative.addProperty("_not_hurt_timer_description", "Time in ticks player must not be hurt to trigger effect.");
+        initiative.addProperty("not_hurt_timer", Initiative.notHurtTimer);
+        json.add("initiative", initiative);
+    }
+    
+    private static void saveSaintsPledge(JsonObject json) {
+        JsonObject saints = new JsonObject();
+        saints.addProperty("_description", "Saint's Pledge: Sacrifice health to grant lifesteal to allies.");
+        saints.addProperty("enabled", SaintsPledge.enabled);
+        saints.addProperty("category", SaintsPledge.category);
+        saints.addProperty("max_level", SaintsPledge.maxLevel);
+        saints.addProperty("_max_health_drained_description", "Maximum health drained as percentage of max health.");
+        saints.addProperty("max_health_drained", SaintsPledge.maxHealthDrained);
+        saints.addProperty("_base_heal_scale_description", "Base heal scale factor.");
+        saints.addProperty("base_heal_scale", SaintsPledge.baseHealScale);
+        saints.addProperty("_heal_scale_per_level_description", "Additional heal scale per level.");
+        saints.addProperty("heal_scale_per_level", SaintsPledge.healScalePerLevel);
+        saints.addProperty("_base_lifesteal_description", "Base lifesteal percentage granted to allies.");
+        saints.addProperty("base_lifesteal", SaintsPledge.baseLifesteal);
+        saints.addProperty("_lifesteal_per_level_description", "Additional lifesteal per level.");
+        saints.addProperty("lifesteal_per_level", SaintsPledge.lifestealPerLevel);
+        saints.addProperty("_lifesteal_cap_per_level_description", "Maximum lifesteal cap per level.");
+        saints.addProperty("lifesteal_cap_per_level", SaintsPledge.lifestealCapPerLevel);
+        saints.addProperty("_duration_description", "Duration of the effect in ticks.");
+        saints.addProperty("duration", SaintsPledge.duration);
+        saints.addProperty("_crouch_time_description", "Time required to crouch in ticks to activate.");
+        saints.addProperty("crouch_time", SaintsPledge.crouchTime);
+        json.add("saints_pledge", saints);
+    }
+    
+    private static void saveLeadTheCharge(JsonObject json) {
+        JsonObject lead = new JsonObject();
+        lead.addProperty("_description", "Lead the Charge: Slow enemies and boost allies when charging forward.");
+        lead.addProperty("enabled", LeadTheCharge.enabled);
+        lead.addProperty("category", LeadTheCharge.category);
+        lead.addProperty("max_level", LeadTheCharge.maxLevel);
+        lead.addProperty("_enemy_slow_percent_description", "Enemy slow percentage.");
+        lead.addProperty("enemy_slow_percent", LeadTheCharge.enemySlowPercent);
+        lead.addProperty("_base_attack_speed_description", "Base attack speed boost for allies in percentage.");
+        lead.addProperty("base_attack_speed", LeadTheCharge.baseAttackSpeed);
+        lead.addProperty("_base_cast_speed_description", "Base cast speed boost for allies in percentage.");
+        lead.addProperty("base_cast_speed", LeadTheCharge.baseCastSpeed);
+        lead.addProperty("_armor_scale_factor_description", "Armor scale factor for calculation.");
+        lead.addProperty("armor_scale_factor", LeadTheCharge.armorScaleFactor);
+        lead.addProperty("_duration_description", "Duration of the effect in ticks.");
+        lead.addProperty("duration", LeadTheCharge.duration);
+        lead.addProperty("_base_cooldown_description", "Base cooldown in ticks.");
+        lead.addProperty("base_cooldown", LeadTheCharge.baseCooldown);
+        lead.addProperty("_cooldown_decrease_per_level_description", "Cooldown decrease per level in ticks.");
+        lead.addProperty("cooldown_decrease_per_level", LeadTheCharge.cooldownDecreasePerLevel);
+        json.add("lead_the_charge", lead);
     }
 }

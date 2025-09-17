@@ -73,6 +73,13 @@ public class EnchantmentModuleHandler {
     private static final UUID HUNTER_CRIT_DAMAGE_UUID = UUID.fromString("c7e8f9a0-1b2c-3d4e-5f6a-7b8c9d0e1f2a");
     private static final UUID HUNTER_CRIT_CHANCE_UUID = UUID.fromString("d8f9a0b1-2c3d-4e5f-6a7b-8c9d0e1f2a3b");
     private static final UUID SHADOW_WALKER_DAMAGE_UUID = UUID.fromString("e8f9a0b1-2c3d-4e5f-6a7b-8c9d0e1f2a3c");
+    private static final UUID INITIATIVE_DAMAGE_FLAT_UUID = UUID.fromString("f9a0b1c2-3d4e-5f6a-7b8c-9d0e1f2a3d4e");
+    private static final UUID INITIATIVE_DAMAGE_PERCENT_UUID = UUID.fromString("a0b1c2d3-4e5f-6a7b-8c9d-0e1f2a3d4e5f");
+    private static final UUID INITIATIVE_ARMOR_UUID = UUID.fromString("b1c2d3e4-5f6a-7b8c-9d0e-1f2a3d4e5f6a");
+    private static final UUID SAINTS_PLEDGE_LIFESTEAL_UUID = UUID.fromString("c2d3e4f5-6a7b-8c9d-0e1f-2a3d4e5f6a7b");
+    private static final UUID SAINTS_PLEDGE_SPELL_LEECH_UUID = UUID.fromString("d3e4f5a6-7b8c-9d0e-1f2a-3d4e5f6a7b8c");
+    private static final UUID LEAD_CHARGE_ATTACK_SPEED_UUID = UUID.fromString("e4f5a6b7-8c9d-0e1f-2a3d-4e5f6a7b8c9d");
+    private static final UUID LEAD_CHARGE_CAST_SPEED_UUID = UUID.fromString("f5a6b7c8-9d0e-1f2a-3d4e-5f6a7b8c9d0e");
 
     public static void register() {
         MinecraftForge.EVENT_BUS.register(EnchantmentModuleHandler.class);
@@ -86,6 +93,7 @@ public class EnchantmentModuleHandler {
         if (event.getEntity() instanceof Player player) {
             handleReprisalTrigger(player, event.getSource());
             handleLifeSurgeTrigger(player);
+            resetInitiativeTimer(player);
         }
     }
 
@@ -96,6 +104,8 @@ public class EnchantmentModuleHandler {
         if (event.getSource().getEntity() instanceof Player attacker) {
             handleWeaponEnchantmentAttacks(attacker, event.getEntity(), event.getSource());
             handleMagicalAttunementDamage(attacker, event);
+            handleInitiativeAttack(attacker, event.getEntity());
+            handleLeadTheChargeAttack(attacker, event.getEntity());
         }
     }
 
@@ -146,6 +156,10 @@ public class EnchantmentModuleHandler {
         handlePeriodicEffects(player);
         
         handleHunterEffect(player);
+        
+        handleSaintsPledgeCrouch(player);
+        
+        updateInitiativeTimer(player);
     }
 
     @SubscribeEvent
@@ -808,7 +822,9 @@ public class EnchantmentModuleHandler {
                 INVIGORATING_SPEED_UUID, LIFE_SURGE_ARMOR_FLAT_UUID, LIFE_SURGE_ARMOR_PERCENT_UUID,
                 LIFE_SURGE_LIFESTEAL_UUID, LIFE_SURGE_SPELL_LEECH_UUID, SPELLBLADE_A_SPELL_POWER_UUID,
                 SPELLBLADE_B_ARROW_UUID, SPELLBLADE_B_ATTACK_UUID, HUNTER_CRIT_DAMAGE_UUID, HUNTER_CRIT_CHANCE_UUID,
-                SHADOW_WALKER_DAMAGE_UUID
+                SHADOW_WALKER_DAMAGE_UUID, INITIATIVE_DAMAGE_FLAT_UUID, INITIATIVE_DAMAGE_PERCENT_UUID,
+                INITIATIVE_ARMOR_UUID, SAINTS_PLEDGE_LIFESTEAL_UUID, SAINTS_PLEDGE_SPELL_LEECH_UUID,
+                LEAD_CHARGE_ATTACK_SPEED_UUID, LEAD_CHARGE_CAST_SPEED_UUID
         };
 
         for (Attribute attr : ForgeRegistries.ATTRIBUTES.getValues()) {
@@ -950,6 +966,205 @@ public class EnchantmentModuleHandler {
 
     private static Attribute getCastTimeReductionAttribute() {
         return ForgeRegistries.ATTRIBUTES.getValue(new ResourceLocation("irons_spellbooks", "cast_time_reduction"));
+    }
+    
+    private static void handleInitiativeAttack(Player attacker, Entity target) {
+        if (!EnchantmentModuleConfig.Initiative.enabled) return;
+        
+        int initiativeLevel = getEnchantmentLevelFromCategory(attacker,
+                EnchantmentModuleRegistration.INITIATIVE.get(), EnchantmentModuleConfig.Initiative.category);
+        
+        if (initiativeLevel > 0 && target instanceof LivingEntity livingTarget) {
+            UUID attackerId = attacker.getUUID();
+            CompoundTag data = getOrCreateEnchantmentData(attackerId);
+            long lastHurt = data.getLong("last_hurt_time");
+            long currentTime = System.currentTimeMillis();
+            
+            if (currentTime - lastHurt >= EnchantmentModuleConfig.Initiative.notHurtTimer * 50L) {
+                double flatDamageBoost = EnchantmentModuleConfig.Initiative.baseFlatDamageBoost +
+                        (initiativeLevel - 1) * EnchantmentModuleConfig.Initiative.flatDamageBoostPerLevel;
+                
+                AttributeInstance armorInstance = attacker.getAttribute(Attributes.ARMOR);
+                double armorValue = armorInstance != null ? armorInstance.getValue() : 0.0;
+                double scaledDamageBoost = EnchantmentModuleConfig.Initiative.percentDamageBoost + 
+                        (armorValue * EnchantmentModuleConfig.Initiative.armorScaleFactor);
+                
+                double armorBoost = EnchantmentModuleConfig.Initiative.baseArmorBoost +
+                        (initiativeLevel - 1) * EnchantmentModuleConfig.Initiative.armorBoostPerLevel;
+                
+                int duration = EnchantmentModuleConfig.Initiative.baseDuration +
+                        (initiativeLevel - 1) * EnchantmentModuleConfig.Initiative.durationPerLevel;
+                
+                Team attackerTeam = attacker.getTeam();
+                if (attackerTeam != null) {
+                    for (Player teammate : attacker.level().getEntitiesOfClass(Player.class,
+                            attacker.getBoundingBox().inflate(50))) {
+                        if (teammate.getTeam() != null && teammate.getTeam().equals(attackerTeam) && !teammate.equals(attacker)) {
+                            applyTimedModifier(teammate, ModAttributes.DAMAGE_AMPLIFIER.get(), INITIATIVE_DAMAGE_FLAT_UUID,
+                                    "Initiative Flat Damage", flatDamageBoost / 100.0, AttributeModifier.Operation.ADDITION, duration);
+                            
+                            applyTimedModifier(teammate, ModAttributes.DAMAGE_AMPLIFIER.get(), INITIATIVE_DAMAGE_PERCENT_UUID,
+                                    "Initiative Percent Damage", scaledDamageBoost / 100.0, AttributeModifier.Operation.MULTIPLY_TOTAL, duration);
+                        }
+                    }
+                }
+                
+                applyTimedModifier(attacker, Attributes.ARMOR, INITIATIVE_ARMOR_UUID,
+                        "Initiative Armor", armorBoost / 100.0, AttributeModifier.Operation.MULTIPLY_TOTAL, duration);
+                
+                attacker.level().playSound(null, attacker.blockPosition(), SoundEvents.FIREWORK_ROCKET_LAUNCH,
+                        SoundSource.PLAYERS, 1.0F, 1.0F);
+                
+                data.putLong("last_hurt_time", currentTime);
+            }
+        }
+    }
+    
+    private static void resetInitiativeTimer(Player player) {
+        UUID playerId = player.getUUID();
+        CompoundTag data = getOrCreateEnchantmentData(playerId);
+        data.putLong("last_hurt_time", System.currentTimeMillis());
+    }
+    
+    private static void updateInitiativeTimer(Player player) {
+        UUID playerId = player.getUUID();
+        CompoundTag data = getOrCreateEnchantmentData(playerId);
+        if (!data.contains("last_hurt_time")) {
+            data.putLong("last_hurt_time", 0L);
+        }
+    }
+    
+    private static void handleSaintsPledgeCrouch(Player player) {
+        if (!EnchantmentModuleConfig.SaintsPledge.enabled) return;
+        
+        int saintsLevel = getEnchantmentLevelFromCategory(player,
+                EnchantmentModuleRegistration.SAINTS_PLEDGE.get(), EnchantmentModuleConfig.SaintsPledge.category);
+        
+        if (saintsLevel > 0) {
+            UUID playerId = player.getUUID();
+            CompoundTag data = getOrCreateEnchantmentData(playerId);
+            
+            boolean isCrouchingWithShield = player.isCrouching() && player.isBlocking();
+            
+            if (isCrouchingWithShield) {
+                long crouchStartTime = data.getLong("saints_crouch_start");
+                if (crouchStartTime == 0) {
+                    data.putLong("saints_crouch_start", System.currentTimeMillis());
+                } else {
+                    long crouchDuration = System.currentTimeMillis() - crouchStartTime;
+                    if (crouchDuration >= EnchantmentModuleConfig.SaintsPledge.crouchTime * 50L) {
+                        String cooldownKey = "saints_pledge_cooldown";
+                        long currentTime = System.currentTimeMillis();
+                        if (!isOnCooldown(playerId, cooldownKey, currentTime)) {
+                            for (int i = 0; i < 3; i++) {
+                                player.level().playSound(null, player.blockPosition(), SoundEvents.WITCH_DRINK,
+                                        SoundSource.PLAYERS, 1.0F, 1.0F + (i * 0.1F));
+                            }
+                            
+                            float healthDrain = (float)(player.getMaxHealth() * EnchantmentModuleConfig.SaintsPledge.maxHealthDrained);
+                            player.hurt(player.damageSources().magic(), healthDrain);
+                            
+                            double healScale = EnchantmentModuleConfig.SaintsPledge.baseHealScale +
+                                    (saintsLevel - 1) * EnchantmentModuleConfig.SaintsPledge.healScalePerLevel;
+                            float healAmount = healthDrain * (float)healScale;
+                            
+                            Team playerTeam = player.getTeam();
+                            if (playerTeam != null) {
+                                List<Player> teammates = player.level().getEntitiesOfClass(Player.class,
+                                        player.getBoundingBox().inflate(50)).stream()
+                                        .filter(p -> p.getTeam() != null && p.getTeam().equals(playerTeam) && !p.equals(player))
+                                        .collect(Collectors.toList());
+                                
+                                if (!teammates.isEmpty()) {
+                                    float healPerTeammate = healAmount / teammates.size();
+                                    for (Player teammate : teammates) {
+                                        teammate.heal(healPerTeammate);
+                                    }
+                                }
+                            }
+                            
+                            double lifestealAmount = EnchantmentModuleConfig.SaintsPledge.baseLifesteal +
+                                    (saintsLevel - 1) * EnchantmentModuleConfig.SaintsPledge.lifestealPerLevel;
+                            double lifestealCap = saintsLevel * EnchantmentModuleConfig.SaintsPledge.lifestealCapPerLevel;
+                            lifestealAmount = Math.min(lifestealAmount, lifestealCap);
+                            
+                            applyTimedModifier(player, ALObjects.Attributes.LIFE_STEAL.get(), SAINTS_PLEDGE_LIFESTEAL_UUID,
+                                    "Saints Pledge Lifesteal", lifestealAmount / 100.0, AttributeModifier.Operation.ADDITION,
+                                    EnchantmentModuleConfig.SaintsPledge.duration);
+                            
+                            applyTimedModifier(player, ModAttributes.SPELL_LEECH.get(), SAINTS_PLEDGE_SPELL_LEECH_UUID,
+                                    "Saints Pledge Spell Leech", lifestealAmount / 100.0, AttributeModifier.Operation.ADDITION,
+                                    EnchantmentModuleConfig.SaintsPledge.duration);
+                            
+                            setCooldown(playerId, cooldownKey, currentTime + (EnchantmentModuleConfig.SaintsPledge.duration * 50L * 2));
+                            data.remove("saints_crouch_start");
+                        }
+                    }
+                }
+            } else {
+                data.remove("saints_crouch_start");
+            }
+        }
+    }
+    
+    private static void handleLeadTheChargeAttack(Player attacker, Entity target) {
+        if (!EnchantmentModuleConfig.LeadTheCharge.enabled) return;
+        
+        int leadLevel = getEnchantmentLevelFromCategory(attacker,
+                EnchantmentModuleRegistration.LEAD_THE_CHARGE.get(), EnchantmentModuleConfig.LeadTheCharge.category);
+        
+        if (leadLevel > 0 && attacker.isSprinting() && target instanceof LivingEntity livingTarget) {
+            UUID attackerId = attacker.getUUID();
+            long currentTime = System.currentTimeMillis();
+            
+            String cooldownKey = "lead_charge_cooldown";
+            if (isOnCooldown(attackerId, cooldownKey, currentTime)) return;
+            
+            int cooldown = EnchantmentModuleConfig.LeadTheCharge.baseCooldown -
+                    (leadLevel - 1) * EnchantmentModuleConfig.LeadTheCharge.cooldownDecreasePerLevel;
+            setCooldown(attackerId, cooldownKey, currentTime + (cooldown * 50L));
+            
+            attacker.level().playSound(null, attacker.blockPosition(), SoundEvents.RAVAGER_ATTACK,
+                    SoundSource.PLAYERS, 1.0F, 1.0F);
+
+            int slowDuration = 60;
+            double slowAmount = EnchantmentModuleConfig.LeadTheCharge.enemySlowPercent / 100.0;
+            livingTarget.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN,
+                    slowDuration, (int)(slowAmount * 3), false, true));
+            
+            AttributeInstance armorInstance = attacker.getAttribute(Attributes.ARMOR);
+            double armorValue = armorInstance != null ? armorInstance.getValue() : 0.0;
+            double scaledAttackSpeed = EnchantmentModuleConfig.LeadTheCharge.baseAttackSpeed +
+                    (armorValue * EnchantmentModuleConfig.LeadTheCharge.armorScaleFactor * 100);
+            double scaledCastSpeed = EnchantmentModuleConfig.LeadTheCharge.baseCastSpeed +
+                    (armorValue * EnchantmentModuleConfig.LeadTheCharge.armorScaleFactor * 100);
+            
+            Team attackerTeam = attacker.getTeam();
+            List<Player> affectedPlayers = new ArrayList<>();
+            affectedPlayers.add(attacker);
+            
+            if (attackerTeam != null) {
+                for (Player teammate : attacker.level().getEntitiesOfClass(Player.class,
+                        attacker.getBoundingBox().inflate(50))) {
+                    if (teammate.getTeam() != null && teammate.getTeam().equals(attackerTeam) && !teammate.equals(attacker)) {
+                        affectedPlayers.add(teammate);
+                    }
+                }
+            }
+            
+            for (Player player : affectedPlayers) {
+                applyTimedModifier(player, Attributes.ATTACK_SPEED, LEAD_CHARGE_ATTACK_SPEED_UUID,
+                        "Lead Charge Attack Speed", scaledAttackSpeed / 100.0, AttributeModifier.Operation.MULTIPLY_TOTAL,
+                        EnchantmentModuleConfig.LeadTheCharge.duration);
+                
+                Attribute castTimeReduction = getCastTimeReductionAttribute();
+                if (castTimeReduction != null) {
+                    applyTimedModifier(player, castTimeReduction, LEAD_CHARGE_CAST_SPEED_UUID,
+                            "Lead Charge Cast Speed", scaledCastSpeed, AttributeModifier.Operation.ADDITION,
+                            EnchantmentModuleConfig.LeadTheCharge.duration);
+                }
+            }
+        }
     }
 
 }

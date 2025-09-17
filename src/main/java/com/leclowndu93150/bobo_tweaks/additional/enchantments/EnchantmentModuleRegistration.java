@@ -44,6 +44,15 @@ public class EnchantmentModuleRegistration {
     public static final RegistryObject<Enchantment> SHADOW_WALKER = ENCHANTMENTS.register("shadow_walker",
             ShadowWalkerEnchantment::new);
     
+    public static final RegistryObject<Enchantment> INITIATIVE = ENCHANTMENTS.register("initiative",
+            InitiativeEnchantment::new);
+    
+    public static final RegistryObject<Enchantment> SAINTS_PLEDGE = ENCHANTMENTS.register("saints_pledge",
+            SaintsPledgeEnchantment::new);
+    
+    public static final RegistryObject<Enchantment> LEAD_THE_CHARGE = ENCHANTMENTS.register("lead_the_charge",
+            LeadTheChargeEnchantment::new);
+    
     public static void register(IEventBus eventBus) {
         ENCHANTMENTS.register(eventBus);
         EnchantmentModuleConfig.load();
