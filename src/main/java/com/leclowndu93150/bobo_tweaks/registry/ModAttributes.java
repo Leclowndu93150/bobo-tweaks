@@ -14,7 +14,7 @@ public class ModAttributes {
     
     // Combat Attributes
     public static final RegistryObject<Attribute> DAMAGE_AMPLIFIER = ATTRIBUTES.register("damage_amplifier",
-        () -> new RangedAttribute("attribute." + BoboTweaks.MODID + ".damage_amplifier", 0.0D, 0.0D, 1024.0D).setSyncable(true));
+        () -> new RangedAttribute("attribute." + BoboTweaks.MODID + ".damage_amplifier", 1.0D, 0.0D, 1024.0D).setSyncable(true));
     
     // Health & Regen Attributes
     public static final RegistryObject<Attribute> LIFE_DRAIN = ATTRIBUTES.register("life_drain",

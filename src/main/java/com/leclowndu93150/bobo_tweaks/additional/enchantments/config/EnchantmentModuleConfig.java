@@ -199,6 +199,55 @@ public class EnchantmentModuleConfig {
         public static int baseCooldown = 200;
         public static int cooldownDecreasePerLevel = 20;
     }
+    
+    public static class RisingEdge {
+        public static boolean enabled = true;
+        public static String category = "WEAPON";
+        public static int maxLevel = 3;
+        
+        public static class PassiveA {
+            public static double baseAttackDamageBoost = 10.0;
+            public static double baseScaleFactor = 1.0;
+            public static double scaleFactorPerLevel = 0.5;
+            public static double baseKnockUp = 0.5;
+            public static double knockUpPerLevel = 0.25;
+            public static int baseCooldown = 100;
+            public static int cooldownReductionPerLevel = 10;
+            public static int slowFallingDuration = 40;
+        }
+        
+        public static class PassiveB {
+            public static double baseAirborneDamage = 5.0;
+            public static double airborneDamagePerLevel = 2.5;
+        }
+    }
+    
+    public static class Sniper {
+        public static boolean enabled = true;
+        public static String category = "BOW";
+        public static int maxLevel = 3;
+        public static double baseArmorReduction = 5.0;
+        public static double baseArmorScaleFactor = 1.0;
+        public static double armorScaleFactorPerLevel = 0.5;
+        public static double baseDamageAmpReduction = 10.0;
+        public static double baseDamageAmpScaleFactor = 1.0;
+        public static double damageAmpScaleFactorPerLevel = 0.5;
+        public static int drawTime = 40;
+        public static int baseCooldown = 200;
+        public static int cooldownReductionPerLevel = 20;
+        public static int baseDebuffDuration = 60;
+        public static int debuffDurationPerLevel = 20;
+    }
+    
+    public static class OnARoll {
+        public static boolean enabled = true;
+        public static String category = "ARMOR_LEGS";
+        public static int maxLevel = 3;
+        public static int baseDuration = 100;
+        public static int durationPerLevel = 20;
+        public static int baseCooldown = 200;
+        public static int cooldownReductionPerLevel = 20;
+    }
 
     public static EnchantmentCategory getCategoryFromString(String categoryName) {
         return switch (categoryName.toUpperCase()) {
@@ -244,6 +293,9 @@ public class EnchantmentModuleConfig {
                 loadInitiative(json);
                 loadSaintsPledge(json);
                 loadLeadTheCharge(json);
+                loadRisingEdge(json);
+                loadSniper(json);
+                loadOnARoll(json);
                 
             } catch (IOException e) {
                 e.printStackTrace();
@@ -481,6 +533,66 @@ public class EnchantmentModuleConfig {
         }
     }
     
+    private static void loadRisingEdge(JsonObject json) {
+        if (json.has("rising_edge")) {
+            JsonObject rising = json.getAsJsonObject("rising_edge");
+            if (rising.has("enabled")) RisingEdge.enabled = rising.get("enabled").getAsBoolean();
+            if (rising.has("category")) RisingEdge.category = rising.get("category").getAsString();
+            if (rising.has("max_level")) RisingEdge.maxLevel = rising.get("max_level").getAsInt();
+            
+            if (rising.has("passive_a")) {
+                JsonObject passiveA = rising.getAsJsonObject("passive_a");
+                if (passiveA.has("base_attack_damage_boost")) RisingEdge.PassiveA.baseAttackDamageBoost = passiveA.get("base_attack_damage_boost").getAsDouble();
+                if (passiveA.has("base_scale_factor")) RisingEdge.PassiveA.baseScaleFactor = passiveA.get("base_scale_factor").getAsDouble();
+                if (passiveA.has("scale_factor_per_level")) RisingEdge.PassiveA.scaleFactorPerLevel = passiveA.get("scale_factor_per_level").getAsDouble();
+                if (passiveA.has("base_knock_up")) RisingEdge.PassiveA.baseKnockUp = passiveA.get("base_knock_up").getAsDouble();
+                if (passiveA.has("knock_up_per_level")) RisingEdge.PassiveA.knockUpPerLevel = passiveA.get("knock_up_per_level").getAsDouble();
+                if (passiveA.has("base_cooldown")) RisingEdge.PassiveA.baseCooldown = passiveA.get("base_cooldown").getAsInt();
+                if (passiveA.has("cooldown_reduction_per_level")) RisingEdge.PassiveA.cooldownReductionPerLevel = passiveA.get("cooldown_reduction_per_level").getAsInt();
+                if (passiveA.has("slow_falling_duration")) RisingEdge.PassiveA.slowFallingDuration = passiveA.get("slow_falling_duration").getAsInt();
+            }
+            
+            if (rising.has("passive_b")) {
+                JsonObject passiveB = rising.getAsJsonObject("passive_b");
+                if (passiveB.has("base_airborne_damage")) RisingEdge.PassiveB.baseAirborneDamage = passiveB.get("base_airborne_damage").getAsDouble();
+                if (passiveB.has("airborne_damage_per_level")) RisingEdge.PassiveB.airborneDamagePerLevel = passiveB.get("airborne_damage_per_level").getAsDouble();
+            }
+        }
+    }
+    
+    private static void loadSniper(JsonObject json) {
+        if (json.has("sniper")) {
+            JsonObject sniper = json.getAsJsonObject("sniper");
+            if (sniper.has("enabled")) Sniper.enabled = sniper.get("enabled").getAsBoolean();
+            if (sniper.has("category")) Sniper.category = sniper.get("category").getAsString();
+            if (sniper.has("max_level")) Sniper.maxLevel = sniper.get("max_level").getAsInt();
+            if (sniper.has("base_armor_reduction")) Sniper.baseArmorReduction = sniper.get("base_armor_reduction").getAsDouble();
+            if (sniper.has("base_armor_scale_factor")) Sniper.baseArmorScaleFactor = sniper.get("base_armor_scale_factor").getAsDouble();
+            if (sniper.has("armor_scale_factor_per_level")) Sniper.armorScaleFactorPerLevel = sniper.get("armor_scale_factor_per_level").getAsDouble();
+            if (sniper.has("base_damage_amp_reduction")) Sniper.baseDamageAmpReduction = sniper.get("base_damage_amp_reduction").getAsDouble();
+            if (sniper.has("base_damage_amp_scale_factor")) Sniper.baseDamageAmpScaleFactor = sniper.get("base_damage_amp_scale_factor").getAsDouble();
+            if (sniper.has("damage_amp_scale_factor_per_level")) Sniper.damageAmpScaleFactorPerLevel = sniper.get("damage_amp_scale_factor_per_level").getAsDouble();
+            if (sniper.has("draw_time")) Sniper.drawTime = sniper.get("draw_time").getAsInt();
+            if (sniper.has("base_cooldown")) Sniper.baseCooldown = sniper.get("base_cooldown").getAsInt();
+            if (sniper.has("cooldown_reduction_per_level")) Sniper.cooldownReductionPerLevel = sniper.get("cooldown_reduction_per_level").getAsInt();
+            if (sniper.has("base_debuff_duration")) Sniper.baseDebuffDuration = sniper.get("base_debuff_duration").getAsInt();
+            if (sniper.has("debuff_duration_per_level")) Sniper.debuffDurationPerLevel = sniper.get("debuff_duration_per_level").getAsInt();
+        }
+    }
+    
+    private static void loadOnARoll(JsonObject json) {
+        if (json.has("on_a_roll")) {
+            JsonObject onARoll = json.getAsJsonObject("on_a_roll");
+            if (onARoll.has("enabled")) OnARoll.enabled = onARoll.get("enabled").getAsBoolean();
+            if (onARoll.has("category")) OnARoll.category = onARoll.get("category").getAsString();
+            if (onARoll.has("max_level")) OnARoll.maxLevel = onARoll.get("max_level").getAsInt();
+            if (onARoll.has("base_duration")) OnARoll.baseDuration = onARoll.get("base_duration").getAsInt();
+            if (onARoll.has("duration_per_level")) OnARoll.durationPerLevel = onARoll.get("duration_per_level").getAsInt();
+            if (onARoll.has("base_cooldown")) OnARoll.baseCooldown = onARoll.get("base_cooldown").getAsInt();
+            if (onARoll.has("cooldown_reduction_per_level")) OnARoll.cooldownReductionPerLevel = onARoll.get("cooldown_reduction_per_level").getAsInt();
+        }
+    }
+    
     public static void save() {
         try {
             CONFIG_FILE.getParentFile().mkdirs();
@@ -502,6 +614,9 @@ public class EnchantmentModuleConfig {
             saveInitiative(json);
             saveSaintsPledge(json);
             saveLeadTheCharge(json);
+            saveRisingEdge(json);
+            saveSniper(json);
+            saveOnARoll(json);
             
             try (FileWriter writer = new FileWriter(CONFIG_FILE)) {
                 GSON.toJson(json, writer);
@@ -823,5 +938,66 @@ public class EnchantmentModuleConfig {
         lead.addProperty("_cooldown_decrease_per_level_description", "Cooldown decrease per level in ticks.");
         lead.addProperty("cooldown_decrease_per_level", LeadTheCharge.cooldownDecreasePerLevel);
         json.add("lead_the_charge", lead);
+    }
+    
+    private static void saveRisingEdge(JsonObject json) {
+        JsonObject rising = new JsonObject();
+        rising.addProperty("_description", "Rising Edge: Knock up enemies and deal bonus damage to airborne targets.");
+        rising.addProperty("enabled", RisingEdge.enabled);
+        rising.addProperty("category", RisingEdge.category);
+        rising.addProperty("max_level", RisingEdge.maxLevel);
+        
+        JsonObject passiveA = new JsonObject();
+        passiveA.addProperty("_description", "Sprint attack effects");
+        passiveA.addProperty("base_attack_damage_boost", RisingEdge.PassiveA.baseAttackDamageBoost);
+        passiveA.addProperty("base_scale_factor", RisingEdge.PassiveA.baseScaleFactor);
+        passiveA.addProperty("scale_factor_per_level", RisingEdge.PassiveA.scaleFactorPerLevel);
+        passiveA.addProperty("base_knock_up", RisingEdge.PassiveA.baseKnockUp);
+        passiveA.addProperty("knock_up_per_level", RisingEdge.PassiveA.knockUpPerLevel);
+        passiveA.addProperty("base_cooldown", RisingEdge.PassiveA.baseCooldown);
+        passiveA.addProperty("cooldown_reduction_per_level", RisingEdge.PassiveA.cooldownReductionPerLevel);
+        passiveA.addProperty("slow_falling_duration", RisingEdge.PassiveA.slowFallingDuration);
+        rising.add("passive_a", passiveA);
+        
+        JsonObject passiveB = new JsonObject();
+        passiveB.addProperty("_description", "Airborne damage boost");
+        passiveB.addProperty("base_airborne_damage", RisingEdge.PassiveB.baseAirborneDamage);
+        passiveB.addProperty("airborne_damage_per_level", RisingEdge.PassiveB.airborneDamagePerLevel);
+        rising.add("passive_b", passiveB);
+        
+        json.add("rising_edge", rising);
+    }
+    
+    private static void saveSniper(JsonObject json) {
+        JsonObject sniper = new JsonObject();
+        sniper.addProperty("_description", "Sniper: Reduce armor and damage amplifier after drawing bow/crossbow.");
+        sniper.addProperty("enabled", Sniper.enabled);
+        sniper.addProperty("category", Sniper.category);
+        sniper.addProperty("max_level", Sniper.maxLevel);
+        sniper.addProperty("base_armor_reduction", Sniper.baseArmorReduction);
+        sniper.addProperty("base_armor_scale_factor", Sniper.baseArmorScaleFactor);
+        sniper.addProperty("armor_scale_factor_per_level", Sniper.armorScaleFactorPerLevel);
+        sniper.addProperty("base_damage_amp_reduction", Sniper.baseDamageAmpReduction);
+        sniper.addProperty("base_damage_amp_scale_factor", Sniper.baseDamageAmpScaleFactor);
+        sniper.addProperty("damage_amp_scale_factor_per_level", Sniper.damageAmpScaleFactorPerLevel);
+        sniper.addProperty("draw_time", Sniper.drawTime);
+        sniper.addProperty("base_cooldown", Sniper.baseCooldown);
+        sniper.addProperty("cooldown_reduction_per_level", Sniper.cooldownReductionPerLevel);
+        sniper.addProperty("base_debuff_duration", Sniper.baseDebuffDuration);
+        sniper.addProperty("debuff_duration_per_level", Sniper.debuffDurationPerLevel);
+        json.add("sniper", sniper);
+    }
+    
+    private static void saveOnARoll(JsonObject json) {
+        JsonObject onARoll = new JsonObject();
+        onARoll.addProperty("_description", "On a Roll: Gain adrenaline after rolling.");
+        onARoll.addProperty("enabled", OnARoll.enabled);
+        onARoll.addProperty("category", OnARoll.category);
+        onARoll.addProperty("max_level", OnARoll.maxLevel);
+        onARoll.addProperty("base_duration", OnARoll.baseDuration);
+        onARoll.addProperty("duration_per_level", OnARoll.durationPerLevel);
+        onARoll.addProperty("base_cooldown", OnARoll.baseCooldown);
+        onARoll.addProperty("cooldown_reduction_per_level", OnARoll.cooldownReductionPerLevel);
+        json.add("on_a_roll", onARoll);
     }
 }

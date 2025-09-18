@@ -73,6 +73,30 @@ public class ModCreativeTabs {
                 ItemStack shadowWalkerBook = new ItemStack(Items.ENCHANTED_BOOK);
                 EnchantmentHelper.setEnchantments(java.util.Map.of(EnchantmentModuleRegistration.SHADOW_WALKER.get(), 1), shadowWalkerBook);
                 output.accept(shadowWalkerBook);
+                
+                ItemStack initiativeBook = new ItemStack(Items.ENCHANTED_BOOK);
+                EnchantmentHelper.setEnchantments(java.util.Map.of(EnchantmentModuleRegistration.INITIATIVE.get(), 1), initiativeBook);
+                output.accept(initiativeBook);
+                
+                ItemStack saintsPledgeBook = new ItemStack(Items.ENCHANTED_BOOK);
+                EnchantmentHelper.setEnchantments(java.util.Map.of(EnchantmentModuleRegistration.SAINTS_PLEDGE.get(), 1), saintsPledgeBook);
+                output.accept(saintsPledgeBook);
+                
+                ItemStack leadTheChargeBook = new ItemStack(Items.ENCHANTED_BOOK);
+                EnchantmentHelper.setEnchantments(java.util.Map.of(EnchantmentModuleRegistration.LEAD_THE_CHARGE.get(), 1), leadTheChargeBook);
+                output.accept(leadTheChargeBook);
+                
+                ItemStack risingEdgeBook = new ItemStack(Items.ENCHANTED_BOOK);
+                EnchantmentHelper.setEnchantments(java.util.Map.of(EnchantmentModuleRegistration.RISING_EDGE.get(), 1), risingEdgeBook);
+                output.accept(risingEdgeBook);
+                
+                ItemStack sniperBook = new ItemStack(Items.ENCHANTED_BOOK);
+                EnchantmentHelper.setEnchantments(java.util.Map.of(EnchantmentModuleRegistration.SNIPER.get(), 1), sniperBook);
+                output.accept(sniperBook);
+                
+                ItemStack onARollBook = new ItemStack(Items.ENCHANTED_BOOK);
+                EnchantmentHelper.setEnchantments(java.util.Map.of(EnchantmentModuleRegistration.ON_A_ROLL.get(), 1), onARollBook);
+                output.accept(onARollBook);
             })
             .build());
     

@@ -73,6 +73,9 @@ public class ModPotions {
     public static final RegistryObject<MobEffect> MARKED = MOB_EFFECTS.register("marked",
         MarkedEffect::new);
     
+    public static final RegistryObject<MobEffect> ADRENALINE = MOB_EFFECTS.register("adrenaline",
+        AdrenalineEffect::new);
+    
     public static void register(IEventBus eventBus) {
         MOB_EFFECTS.register(eventBus);
         POTIONS.register(eventBus);

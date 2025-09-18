@@ -53,6 +53,15 @@ public class EnchantmentModuleRegistration {
     public static final RegistryObject<Enchantment> LEAD_THE_CHARGE = ENCHANTMENTS.register("lead_the_charge",
             LeadTheChargeEnchantment::new);
     
+    public static final RegistryObject<Enchantment> RISING_EDGE = ENCHANTMENTS.register("rising_edge",
+            RisingEdgeEnchantment::new);
+    
+    public static final RegistryObject<Enchantment> SNIPER = ENCHANTMENTS.register("sniper",
+            SniperEnchantment::new);
+    
+    public static final RegistryObject<Enchantment> ON_A_ROLL = ENCHANTMENTS.register("on_a_roll",
+            OnARollEnchantment::new);
+    
     public static void register(IEventBus eventBus) {
         ENCHANTMENTS.register(eventBus);
         EnchantmentModuleConfig.load();
@@ -60,5 +69,6 @@ public class EnchantmentModuleRegistration {
     
     public static void registerEvents() {
         EnchantmentModuleHandler.register();
+        OnARollHandler.register();
     }
 }

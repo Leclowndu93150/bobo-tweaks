@@ -177,7 +177,7 @@ public class AttributeTickHandler {
             
             if (powerLink > 0) {
                 double damageAmplifier = damageAmpAttr.getValue();
-                double conversionAmount = damageAmplifier * powerLink;
+                double conversionAmount = Math.max(0, (damageAmplifier - 1) * powerLink);
                 
                 AttributeModifier alchemicalModifier = new AttributeModifier(
                     POWER_LINK_ALCHEMICAL_UUID,

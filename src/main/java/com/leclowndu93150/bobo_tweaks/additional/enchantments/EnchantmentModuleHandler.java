@@ -226,7 +226,7 @@ public class EnchantmentModuleHandler {
                     (reprisalLevel - 1) * EnchantmentModuleConfig.Reprisal.durationPerLevel;
 
             applyTimedModifier(player, ModAttributes.DAMAGE_AMPLIFIER.get(), REPRISAL_DAMAGE_UUID,
-                    "Reprisal Damage", damageBoost / 100.0, AttributeModifier.Operation.ADDITION, duration);
+                    "Reprisal Damage", damageBoost / 100.0, AttributeModifier.Operation.MULTIPLY_TOTAL, duration);
 
             setEnchantmentFlag(playerId, "reprisal_active", true, duration);
         }
@@ -453,6 +453,7 @@ public class EnchantmentModuleHandler {
 
             handleSpellbladePassiveA(attacker, source);
             handleShadowWalkerInvisibilityDamage(attacker);
+            handleRisingEdgeAttack(attacker, livingTarget);
 
             if (hasEnchantmentFlag(attacker.getUUID(), "reprisal_active")) {
                 if (!attacker.level().isClientSide()) {
@@ -649,7 +650,7 @@ public class EnchantmentModuleHandler {
             if (stacks > 0) {
                 AttributeModifier damageMod = new AttributeModifier(
                         MOMENTUM_DAMAGE_UUID, "Momentum Damage", totalDamageBoost,
-                        AttributeModifier.Operation.ADDITION);
+                        AttributeModifier.Operation.MULTIPLY_TOTAL);
                 damageAttr.addTransientModifier(damageMod);
 
                 trackModifier(player.getUUID(), "momentum_damage",
@@ -774,6 +775,25 @@ public class EnchantmentModuleHandler {
 
             trackModifier(player.getUUID(), modifierUUID.toString(),
                     System.currentTimeMillis() + (durationTicks * 50L));
+        }
+    }
+
+    private static void applyTimedModifier(LivingEntity entity, Attribute attribute, UUID modifierUUID,
+                                           String name, double amount, AttributeModifier.Operation operation,
+                                           int durationTicks) {
+        if (attribute == null) return;
+
+        AttributeInstance attrInstance = entity.getAttribute(attribute);
+        if (attrInstance != null) {
+            attrInstance.removeModifier(modifierUUID);
+
+            AttributeModifier modifier = new AttributeModifier(modifierUUID, name, amount, operation);
+            attrInstance.addTransientModifier(modifier);
+
+            if (entity instanceof Player player) {
+                trackModifier(player.getUUID(), modifierUUID.toString(),
+                        System.currentTimeMillis() + (durationTicks * 50L));
+            }
         }
     }
 
@@ -903,7 +923,7 @@ public class EnchantmentModuleHandler {
         return ItemStack.EMPTY;
     }
 
-    private static int getEnchantmentLevelFromCategory(Player player, net.minecraft.world.item.enchantment.Enchantment enchantment, String categoryName) {
+    static int getEnchantmentLevelFromCategory(Player player, net.minecraft.world.item.enchantment.Enchantment enchantment, String categoryName) {
         ItemStack itemStack = getEnchantedItemStackFromCategory(player, enchantment, categoryName);
         return EnchantmentHelper.getItemEnchantmentLevel(enchantment, itemStack);
     }
@@ -1162,6 +1182,181 @@ public class EnchantmentModuleHandler {
                     applyTimedModifier(player, castTimeReduction, LEAD_CHARGE_CAST_SPEED_UUID,
                             "Lead Charge Cast Speed", scaledCastSpeed, AttributeModifier.Operation.ADDITION,
                             EnchantmentModuleConfig.LeadTheCharge.duration);
+                }
+            }
+        }
+    }
+
+    private static void handleRisingEdgeAttack(Player attacker, LivingEntity target) {
+        if (!EnchantmentModuleConfig.RisingEdge.enabled) return;
+        
+        int risingLevel = getEnchantmentLevelFromCategory(attacker,
+                EnchantmentModuleRegistration.RISING_EDGE.get(), EnchantmentModuleConfig.RisingEdge.category);
+        
+        if (risingLevel > 0 && attacker.isSprinting()) {
+            UUID attackerId = attacker.getUUID();
+            long currentTime = System.currentTimeMillis();
+            
+            String cooldownKey = "rising_edge_cooldown";
+            if (!isOnCooldown(attackerId, cooldownKey, currentTime)) {
+                int cooldown = EnchantmentModuleConfig.RisingEdge.PassiveA.baseCooldown -
+                        (risingLevel - 1) * EnchantmentModuleConfig.RisingEdge.PassiveA.cooldownReductionPerLevel;
+                setCooldown(attackerId, cooldownKey, currentTime + (cooldown * 50L));
+                
+                double knockUpDistance = EnchantmentModuleConfig.RisingEdge.PassiveA.baseKnockUp +
+                        (risingLevel - 1) * EnchantmentModuleConfig.RisingEdge.PassiveA.knockUpPerLevel;
+                target.setDeltaMovement(target.getDeltaMovement().add(0, knockUpDistance, 0));
+                target.hurtMarked = true;
+                
+                target.addEffect(new MobEffectInstance(MobEffects.SLOW_FALLING,
+                        EnchantmentModuleConfig.RisingEdge.PassiveA.slowFallingDuration, 0, false, false));
+                
+                attacker.level().playSound(null, attacker.blockPosition(), SoundEvents.RAVAGER_ATTACK,
+                        SoundSource.PLAYERS, 1.0F, 1.0F);
+            }
+        }
+    }
+    
+    @SubscribeEvent(priority = EventPriority.HIGH)
+    public static void onRisingEdgeDamage(LivingHurtEvent event) {
+        if (!EnchantmentModuleConfig.RisingEdge.enabled) return;
+        
+        if (event.getSource().getEntity() instanceof Player attacker) {
+            int risingLevel = getEnchantmentLevelFromCategory(attacker,
+                    EnchantmentModuleRegistration.RISING_EDGE.get(), EnchantmentModuleConfig.RisingEdge.category);
+            
+            if (risingLevel > 0) {
+                LivingEntity target = event.getEntity();
+                
+                if (attacker.isSprinting()) {
+                    UUID attackerId = attacker.getUUID();
+                    String flag = "rising_edge_sprint_damage";
+                    CompoundTag data = getOrCreateEnchantmentData(attackerId);
+                    
+                    if (!data.contains(flag) || System.currentTimeMillis() - data.getLong(flag) > 100) {
+                        data.putLong(flag, System.currentTimeMillis());
+                        
+                        AttributeInstance damageAmpInstance = attacker.getAttribute(ModAttributes.DAMAGE_AMPLIFIER.get());
+                        double damageAmp = damageAmpInstance != null ? damageAmpInstance.getValue() : 0.0;
+                        
+                        double baseDamageBoost = EnchantmentModuleConfig.RisingEdge.PassiveA.baseAttackDamageBoost / 100.0;
+                        double scaleFactor = EnchantmentModuleConfig.RisingEdge.PassiveA.baseScaleFactor +
+                                (risingLevel - 1) * EnchantmentModuleConfig.RisingEdge.PassiveA.scaleFactorPerLevel;
+                        double totalBoost = baseDamageBoost * (1 + damageAmp * scaleFactor);
+                        
+                        event.setAmount(event.getAmount() * (float)(1 + totalBoost));
+                    }
+                }
+                
+                if (!target.onGround() || target.hasEffect(MobEffects.LEVITATION) || 
+                    target.hasEffect(MobEffects.SLOW_FALLING) || target.isFallFlying()) {
+                    double airborneDamage = EnchantmentModuleConfig.RisingEdge.PassiveB.baseAirborneDamage +
+                            (risingLevel - 1) * EnchantmentModuleConfig.RisingEdge.PassiveB.airborneDamagePerLevel;
+                    event.setAmount(event.getAmount() + (float)airborneDamage);
+                }
+            }
+        }
+    }
+    
+    @SubscribeEvent
+    public static void onSniperBowDraw(TickEvent.PlayerTickEvent event) {
+        if (!EnchantmentModuleConfig.Sniper.enabled || event.phase != TickEvent.Phase.END) return;
+        
+        Player player = event.player;
+        
+        int sniperLevel = getEnchantmentLevelFromCategory(player,
+                EnchantmentModuleRegistration.SNIPER.get(), EnchantmentModuleConfig.Sniper.category);
+        
+        if (sniperLevel > 0) {
+            ItemStack mainHand = player.getMainHandItem();
+            if (mainHand.getItem() instanceof BowItem || mainHand.getItem() instanceof CrossbowItem) {
+                CompoundTag data = getOrCreateEnchantmentData(player.getUUID());
+                String drawKey = "sniper_draw_time";
+                String readyKey = "sniper_ready";
+                
+                if (player.isUsingItem() && player.getUseItem() == mainHand) {
+                    long drawTime = data.getLong(drawKey);
+                    if (drawTime == 0) {
+                        data.putLong(drawKey, System.currentTimeMillis());
+                    } else if (System.currentTimeMillis() - drawTime >= EnchantmentModuleConfig.Sniper.drawTime * 50L) {
+                        if (!data.getBoolean(readyKey)) {
+                            data.putBoolean(readyKey, true);
+                            player.level().playSound(null, player.blockPosition(), SoundEvents.EXPERIENCE_ORB_PICKUP,
+                                    SoundSource.PLAYERS, 0.5F, 2.0F);
+                        }
+                    }
+                } else {
+                    data.remove(drawKey);
+                    data.remove(readyKey);
+                }
+            }
+        }
+    }
+    
+    @SubscribeEvent(priority = EventPriority.HIGH)
+    public static void onSniperArrowHit(LivingHurtEvent event) {
+        if (!EnchantmentModuleConfig.Sniper.enabled) return;
+        
+        if (event.getSource().getDirectEntity() instanceof AbstractArrow arrow &&
+                event.getSource().getEntity() instanceof Player attacker) {
+            
+            CompoundTag data = getOrCreateEnchantmentData(attacker.getUUID());
+            if (data.getBoolean("sniper_ready")) {
+                data.remove("sniper_ready");
+                data.remove("sniper_draw_time");
+                
+                int sniperLevel = getEnchantmentLevelFromCategory(attacker,
+                        EnchantmentModuleRegistration.SNIPER.get(), EnchantmentModuleConfig.Sniper.category);
+                
+                if (sniperLevel > 0) {
+                    UUID attackerId = attacker.getUUID();
+                    long currentTime = System.currentTimeMillis();
+                    
+                    String cooldownKey = "sniper_cooldown";
+                    if (!isOnCooldown(attackerId, cooldownKey, currentTime)) {
+                        int cooldown = EnchantmentModuleConfig.Sniper.baseCooldown -
+                                (sniperLevel - 1) * EnchantmentModuleConfig.Sniper.cooldownReductionPerLevel;
+                        setCooldown(attackerId, cooldownKey, currentTime + (cooldown * 50L));
+                        
+                        LivingEntity target = event.getEntity();
+                        int debuffDuration = EnchantmentModuleConfig.Sniper.baseDebuffDuration +
+                                (sniperLevel - 1) * EnchantmentModuleConfig.Sniper.debuffDurationPerLevel;
+                        
+                        AttributeInstance attackerDamageAmp = attacker.getAttribute(ModAttributes.DAMAGE_AMPLIFIER.get());
+                        double damageAmp = attackerDamageAmp != null ? attackerDamageAmp.getValue() : 0.0;
+                        
+                        double armorReduction = EnchantmentModuleConfig.Sniper.baseArmorReduction *
+                                (EnchantmentModuleConfig.Sniper.baseArmorScaleFactor +
+                                (sniperLevel - 1) * EnchantmentModuleConfig.Sniper.armorScaleFactorPerLevel) *
+                                (1 + damageAmp);
+                        
+                        AttributeInstance targetArmor = target.getAttribute(Attributes.ARMOR);
+                        if (targetArmor != null && targetArmor.getValue() > 0) {
+                            UUID armorDebuffUUID = UUID.randomUUID();
+                            applyTimedModifier(target, Attributes.ARMOR, armorDebuffUUID,
+                                    "Sniper Armor Reduction", -armorReduction, AttributeModifier.Operation.ADDITION,
+                                    debuffDuration);
+                        }
+                        
+                        AttributeInstance attackerArmor = attacker.getAttribute(Attributes.ARMOR);
+                        double armor = attackerArmor != null ? attackerArmor.getValue() : 0.0;
+                        
+                        double damageAmpReduction = EnchantmentModuleConfig.Sniper.baseDamageAmpReduction *
+                                (EnchantmentModuleConfig.Sniper.baseDamageAmpScaleFactor +
+                                (sniperLevel - 1) * EnchantmentModuleConfig.Sniper.damageAmpScaleFactorPerLevel) *
+                                (1 + armor * 0.01);
+                        
+                        AttributeInstance targetDamageAmp = target.getAttribute(ModAttributes.DAMAGE_AMPLIFIER.get());
+                        if (targetDamageAmp != null && targetDamageAmp.getValue() > 0) {
+                            UUID damageDebuffUUID = UUID.randomUUID();
+                            applyTimedModifier(target, ModAttributes.DAMAGE_AMPLIFIER.get(), damageDebuffUUID,
+                                    "Sniper Damage Reduction", -damageAmpReduction / 100.0, AttributeModifier.Operation.MULTIPLY_TOTAL,
+                                    debuffDuration);
+                        }
+                        
+                        attacker.level().playSound(null, attacker.blockPosition(), SoundEvents.RAVAGER_ATTACK,
+                                SoundSource.PLAYERS, 1.0F, 1.0F);
+                    }
                 }
             }
         }
