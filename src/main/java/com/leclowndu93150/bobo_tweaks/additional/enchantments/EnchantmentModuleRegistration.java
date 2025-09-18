@@ -1,6 +1,10 @@
 package com.leclowndu93150.bobo_tweaks.additional.enchantments;
 
 import com.leclowndu93150.bobo_tweaks.additional.enchantments.config.EnchantmentModuleConfig;
+import com.leclowndu93150.bobo_tweaks.additional.enchantments.events.OnARollHandler;
+import com.leclowndu93150.bobo_tweaks.additional.enchantments.handler.EnchantmentModuleHandler;
+import com.leclowndu93150.bobo_tweaks.additional.enchantments.impl.*;
+import com.leclowndu93150.bobo_tweaks.additional.enchantments.registry.EnchantmentEventRegistry;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.common.Mod;
@@ -68,6 +72,7 @@ public class EnchantmentModuleRegistration {
     }
     
     public static void registerEvents() {
+        EnchantmentEventRegistry.registerEnchantments();
         EnchantmentModuleHandler.register();
         OnARollHandler.register();
     }

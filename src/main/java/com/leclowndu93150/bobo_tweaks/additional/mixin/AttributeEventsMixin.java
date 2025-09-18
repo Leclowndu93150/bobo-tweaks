@@ -1,6 +1,6 @@
 package com.leclowndu93150.bobo_tweaks.additional.mixin;
 
-import com.leclowndu93150.bobo_tweaks.additional.enchantments.EnchantmentModuleHandler;
+import com.leclowndu93150.bobo_tweaks.additional.enchantments.registry.EnchantmentEventRegistry;
 import com.leclowndu93150.bobo_tweaks.registry.ModPotions;
 import dev.shadowsoffire.attributeslib.AttributesLib;
 import dev.shadowsoffire.attributeslib.api.ALObjects.Attributes;
@@ -55,7 +55,7 @@ public class AttributeEventsMixin {
                 PacketDistro.sendToTracking(AttributesLib.CHANNEL, new CritParticleMessage(e.getEntity().getId()), (ServerLevel)attacker.level(), e.getEntity().blockPosition());
 
                 if (attacker instanceof Player) {
-                    EnchantmentModuleHandler.triggerPerfectionist((Player) attacker);
+                    EnchantmentEventRegistry.triggerPerfectionist((Player) attacker);
                 }
             }
         }
@@ -72,7 +72,7 @@ public class AttributeEventsMixin {
         if (e.isVanillaCritical()) {
             e.setDamageModifier(Math.max(e.getDamageModifier(), critDmg));
 
-            EnchantmentModuleHandler.triggerPerfectionist(e.getEntity());
+            EnchantmentEventRegistry.triggerPerfectionist(e.getEntity());
         }
     }
 }

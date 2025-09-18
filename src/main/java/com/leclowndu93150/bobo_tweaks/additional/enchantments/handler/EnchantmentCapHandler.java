@@ -1,4 +1,4 @@
-package com.leclowndu93150.bobo_tweaks.additional.enchantments;
+package com.leclowndu93150.bobo_tweaks.additional.enchantments.handler;
 
 import com.leclowndu93150.bobo_tweaks.additional.enchantments.config.EnchantmentModuleConfig;
 import net.minecraft.world.item.ItemStack;

@@ -5,7 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.minecraft.world.item.enchantment.EnchantmentCategory;
-import com.leclowndu93150.bobo_tweaks.additional.enchantments.CustomEnchantmentCategory;
+import com.leclowndu93150.bobo_tweaks.additional.enchantments.custom.CustomEnchantmentCategory;
 
 import java.io.File;
 import java.io.FileReader;

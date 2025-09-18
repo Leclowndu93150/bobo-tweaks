@@ -1,4 +1,4 @@
-package com.leclowndu93150.bobo_tweaks.additional.enchantments;
+package com.leclowndu93150.bobo_tweaks.additional.enchantments.custom;
 
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.enchantment.EnchantmentCategory;

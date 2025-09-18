@@ -1,6 +1,8 @@
-package com.leclowndu93150.bobo_tweaks.additional.enchantments;
+package com.leclowndu93150.bobo_tweaks.additional.enchantments.events;
 
 import com.leclowndu93150.bobo_tweaks.additional.enchantments.config.EnchantmentModuleConfig;
+import com.leclowndu93150.bobo_tweaks.additional.enchantments.EnchantmentModuleRegistration;
+import com.leclowndu93150.bobo_tweaks.additional.enchantments.impl.OnARollEnchantment;
 import com.leclowndu93150.bobo_tweaks.registry.ModPotions;
 import net.combatroll.api.event.ServerSideRollEvents;
 import net.minecraft.sounds.SoundEvents;
@@ -17,6 +19,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class OnARollHandler {
     
     private static final Map<UUID, Long> rollCooldowns = new ConcurrentHashMap<>();
+    private static final OnARollEnchantment onARollEnchantment = new OnARollEnchantment();
     
     public static void register() {
         ServerSideRollEvents.PLAYER_START_ROLLING.register((player, velocity) -> {
@@ -24,8 +27,7 @@ public class OnARollHandler {
             
             Player forgePlayer = (Player) player;
             
-            int onARollLevel = EnchantmentModuleHandler.getEnchantmentLevelFromCategory(forgePlayer,
-                    EnchantmentModuleRegistration.ON_A_ROLL.get(), EnchantmentModuleConfig.OnARoll.category);
+            int onARollLevel = onARollEnchantment.getEnchantmentLevelFromCategory(forgePlayer, EnchantmentModuleConfig.OnARoll.category);
             
             if (onARollLevel > 0) {
                 UUID playerId = forgePlayer.getUUID();
