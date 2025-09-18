@@ -3,8 +3,10 @@ package com.leclowndu93150.bobo_tweaks.additional.enchantments.events;
 import com.leclowndu93150.bobo_tweaks.additional.enchantments.config.EnchantmentModuleConfig;
 import com.leclowndu93150.bobo_tweaks.additional.enchantments.EnchantmentModuleRegistration;
 import com.leclowndu93150.bobo_tweaks.additional.enchantments.impl.OnARollEnchantment;
+import com.leclowndu93150.bobo_tweaks.network.ModNetworking;
 import com.leclowndu93150.bobo_tweaks.registry.ModPotions;
 import net.combatroll.api.event.ServerSideRollEvents;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -53,8 +55,10 @@ public class OnARollHandler {
                             true
                     ));
                     
-                    forgePlayer.level().playSound(null, forgePlayer.blockPosition(), 
-                            SoundEvents.RAVAGER_ATTACK, SoundSource.PLAYERS, 1.0F, 1.0F);
+                    if (forgePlayer.level() instanceof ServerLevel serverLevel) {
+                        ModNetworking.playSound(serverLevel, forgePlayer.getX(), forgePlayer.getY(), forgePlayer.getZ(), 
+                                SoundEvents.RAVAGER_ATTACK, SoundSource.PLAYERS, 1.0F, 1.0F);
+                    }
                 }
             }
         });

@@ -3,6 +3,7 @@ package com.leclowndu93150.bobo_tweaks.additional.enchantments.impl;
 import com.leclowndu93150.bobo_tweaks.additional.enchantments.base.EventHandlingEnchantment;
 import com.leclowndu93150.bobo_tweaks.additional.enchantments.config.EnchantmentModuleConfig;
 import com.leclowndu93150.bobo_tweaks.additional.enchantments.tracking.EnchantmentTracker;
+import com.leclowndu93150.bobo_tweaks.network.ModNetworking;
 import com.leclowndu93150.bobo_tweaks.registry.ModAttributes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.sounds.SoundEvents;
@@ -11,6 +12,7 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.player.Player;
@@ -90,14 +92,17 @@ public class RisingEdgeEnchantment extends EventHandlingEnchantment {
                 
                 double knockUpDistance = EnchantmentModuleConfig.RisingEdge.PassiveA.baseKnockUp +
                         (risingLevel - 1) * EnchantmentModuleConfig.RisingEdge.PassiveA.knockUpPerLevel;
+                
                 target.setDeltaMovement(target.getDeltaMovement().add(0, knockUpDistance, 0));
                 target.hurtMarked = true;
                 
                 target.addEffect(new MobEffectInstance(MobEffects.SLOW_FALLING,
-                        EnchantmentModuleConfig.RisingEdge.PassiveA.slowFallingDuration, 0, false, false));
+                        EnchantmentModuleConfig.RisingEdge.PassiveA.slowFallingDuration, 0, false, true, true));
                 
-                attacker.level().playSound(null, attacker.blockPosition(), SoundEvents.RAVAGER_ATTACK,
-                        SoundSource.PLAYERS, 1.0F, 1.0F);
+                if (!attacker.level().isClientSide && attacker.level() instanceof ServerLevel serverLevel) {
+                    ModNetworking.playSound(serverLevel, target.getX(), target.getY(), target.getZ(), 
+                            SoundEvents.RAVAGER_ATTACK, SoundSource.PLAYERS, 1.0F, 1.0F);
+                }
             }
         }
     }
@@ -107,15 +112,13 @@ public class RisingEdgeEnchantment extends EventHandlingEnchantment {
         
         if (risingLevel > 0) {
             LivingEntity target = event.getEntity();
+            UUID attackerId = attacker.getUUID();
             
             if (attacker.isSprinting()) {
-                UUID attackerId = attacker.getUUID();
-                String flag = "rising_edge_sprint_damage";
-                CompoundTag data = EnchantmentTracker.getOrCreateEnchantmentData(attackerId);
+                long currentTime = System.currentTimeMillis();
+                String cooldownKey = "rising_edge_cooldown";
                 
-                if (!data.contains(flag) || System.currentTimeMillis() - data.getLong(flag) > 100) {
-                    data.putLong(flag, System.currentTimeMillis());
-                    
+                if (!EnchantmentTracker.isOnCooldown(attackerId, cooldownKey, currentTime)) {
                     AttributeInstance damageAmpInstance = attacker.getAttribute(ModAttributes.DAMAGE_AMPLIFIER.get());
                     double totalBoost = getTotalBoost(damageAmpInstance, risingLevel);
 

@@ -2,10 +2,12 @@ package com.leclowndu93150.bobo_tweaks.effect;
 
 import com.leclowndu93150.bobo_tweaks.BoboTweaks;
 import com.leclowndu93150.bobo_tweaks.config.ModConfig;
+import com.leclowndu93150.bobo_tweaks.network.ModNetworking;
 import com.leclowndu93150.bobo_tweaks.registry.ModPotions;
 import io.redspace.ironsspellbooks.api.magic.MagicData;
 import io.redspace.ironsspellbooks.api.registry.AttributeRegistry;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.effect.MobEffect;
@@ -155,8 +157,10 @@ public class RejuvenatingShotsEffect extends MobEffect {
             
             target.heal(totalHeal);
             
-            target.level().playSound(null, target.getX(), target.getY(), target.getZ(),
-                SoundEvents.AMETHYST_BLOCK_BREAK, SoundSource.PLAYERS, 1.0F, 1.0F);
+            if (target.level() instanceof ServerLevel serverLevel) {
+                ModNetworking.playSound(serverLevel, target.getX(), target.getY(), target.getZ(),
+                    SoundEvents.AMETHYST_BLOCK_BREAK, SoundSource.PLAYERS, 1.0F, 1.0F);
+            }
         }
     }
     

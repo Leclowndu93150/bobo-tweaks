@@ -12,6 +12,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
+import java.util.Arrays;
 
 public class EnchantmentModuleConfig {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
@@ -296,6 +297,8 @@ public class EnchantmentModuleConfig {
                 loadRisingEdge(json);
                 loadSniper(json);
                 loadOnARoll(json);
+                
+                migrateConfig(json);
                 
             } catch (IOException e) {
                 e.printStackTrace();
@@ -590,6 +593,30 @@ public class EnchantmentModuleConfig {
             if (onARoll.has("duration_per_level")) OnARoll.durationPerLevel = onARoll.get("duration_per_level").getAsInt();
             if (onARoll.has("base_cooldown")) OnARoll.baseCooldown = onARoll.get("base_cooldown").getAsInt();
             if (onARoll.has("cooldown_reduction_per_level")) OnARoll.cooldownReductionPerLevel = onARoll.get("cooldown_reduction_per_level").getAsInt();
+        }
+    }
+    
+    private static void migrateConfig(JsonObject json) {
+        boolean needsSave = false;
+        
+        Set<String> existingEnchants = json.keySet();
+        List<String> expectedEnchants = Arrays.asList(
+            "enabled", "enchantment_cap", "reprisal", "momentum", "spellblade", 
+            "magical_attunement", "perfectionist", "hunter", "multiscale", 
+            "invigorating_defenses", "life_surge", "shadow_walker", "initiative", 
+            "saints_pledge", "lead_the_charge", "rising_edge", "sniper", "on_a_roll"
+        );
+        
+        for (String expected : expectedEnchants) {
+            if (!existingEnchants.contains(expected)) {
+                needsSave = true;
+                System.out.println("Detected missing enchantment config: " + expected + ". Migrating config...");
+                break;
+            }
+        }
+        
+        if (needsSave) {
+            save();
         }
     }
     

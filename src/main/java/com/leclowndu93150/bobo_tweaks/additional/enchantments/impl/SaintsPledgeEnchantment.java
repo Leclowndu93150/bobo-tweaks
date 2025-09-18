@@ -3,11 +3,13 @@ package com.leclowndu93150.bobo_tweaks.additional.enchantments.impl;
 import com.leclowndu93150.bobo_tweaks.additional.enchantments.base.EventHandlingEnchantment;
 import com.leclowndu93150.bobo_tweaks.additional.enchantments.config.EnchantmentModuleConfig;
 import com.leclowndu93150.bobo_tweaks.additional.enchantments.tracking.EnchantmentTracker;
+import com.leclowndu93150.bobo_tweaks.network.ModNetworking;
 import com.leclowndu93150.bobo_tweaks.registry.ModAttributes;
 import dev.shadowsoffire.attributeslib.api.ALObjects;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.player.Player;
@@ -82,9 +84,11 @@ public class SaintsPledgeEnchantment extends EventHandlingEnchantment {
                         String cooldownKey = "saints_pledge_cooldown";
                         long currentTime = System.currentTimeMillis();
                         if (!EnchantmentTracker.isOnCooldown(playerId, cooldownKey, currentTime)) {
-                            for (int i = 0; i < 3; i++) {
-                                player.level().playSound(null, player.blockPosition(), SoundEvents.WITCH_DRINK,
-                                        SoundSource.PLAYERS, 1.0F, 1.0F + (i * 0.1F));
+                            if (player.level() instanceof ServerLevel serverLevel) {
+                                for (int i = 0; i < 3; i++) {
+                                    ModNetworking.playSound(serverLevel, player.getX(), player.getY(), player.getZ(),
+                                            SoundEvents.WITCH_DRINK, SoundSource.PLAYERS, 1.0F, 1.0F + (i * 0.1F));
+                                }
                             }
                             
                             float healthDrain = (float)(player.getMaxHealth() * EnchantmentModuleConfig.SaintsPledge.maxHealthDrained);

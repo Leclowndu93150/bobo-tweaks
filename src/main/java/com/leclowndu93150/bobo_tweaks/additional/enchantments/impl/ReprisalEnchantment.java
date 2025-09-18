@@ -3,6 +3,7 @@ package com.leclowndu93150.bobo_tweaks.additional.enchantments.impl;
 import com.leclowndu93150.bobo_tweaks.additional.enchantments.base.EventHandlingEnchantment;
 import com.leclowndu93150.bobo_tweaks.additional.enchantments.config.EnchantmentModuleConfig;
 import com.leclowndu93150.bobo_tweaks.additional.enchantments.tracking.EnchantmentTracker;
+import com.leclowndu93150.bobo_tweaks.network.ModNetworking;
 import com.leclowndu93150.bobo_tweaks.registry.ModAttributes;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -10,6 +11,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
@@ -70,8 +72,10 @@ public class ReprisalEnchantment extends EventHandlingEnchantment {
         if (event.getSource().getEntity() instanceof Player attacker) {
             if (EnchantmentTracker.hasEnchantmentFlag(attacker.getUUID(), "reprisal_active")) {
                 if (!attacker.level().isClientSide()) {
-                    attacker.level().playSound(null, attacker.blockPosition(), SoundEvents.ELDER_GUARDIAN_HURT_LAND, 
-                            SoundSource.PLAYERS, 1.0F, 1.0F);
+                    if (attacker.level() instanceof ServerLevel serverLevel) {
+                        ModNetworking.playSound(serverLevel, attacker.getX(), attacker.getY(), attacker.getZ(),
+                                SoundEvents.ELDER_GUARDIAN_HURT_LAND, SoundSource.PLAYERS, 1.0F, 1.0F);
+                    }
                     attacker.sendSystemMessage(Component.literal("Reprisal: +15% Damage!"));
                 }
             }

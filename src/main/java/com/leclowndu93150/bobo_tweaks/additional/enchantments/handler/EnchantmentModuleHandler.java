@@ -5,6 +5,7 @@ import com.leclowndu93150.bobo_tweaks.additional.enchantments.registry.Enchantme
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
+import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.event.entity.living.ShieldBlockEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
@@ -57,6 +58,13 @@ public class EnchantmentModuleHandler {
         if (!EnchantmentModuleConfig.enableEnchantmentModule) return;
         if (event.phase != TickEvent.Phase.END || event.player.level().isClientSide()) return;
         EnchantmentEventRegistry.onPlayerTick(event);
+    }
+    
+    @SubscribeEvent
+    public static void onLivingTick(LivingEvent.LivingTickEvent event) {
+        if (!EnchantmentModuleConfig.enableEnchantmentModule) return;
+        if (event.getEntity().level().isClientSide()) return;
+        EnchantmentEventRegistry.onLivingTick(event);
     }
 
     @SubscribeEvent

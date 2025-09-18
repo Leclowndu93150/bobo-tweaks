@@ -3,12 +3,14 @@ package com.leclowndu93150.bobo_tweaks.additional.enchantments.impl;
 import com.leclowndu93150.bobo_tweaks.additional.enchantments.base.EventHandlingEnchantment;
 import com.leclowndu93150.bobo_tweaks.additional.enchantments.config.EnchantmentModuleConfig;
 import com.leclowndu93150.bobo_tweaks.additional.enchantments.tracking.EnchantmentTracker;
+import com.leclowndu93150.bobo_tweaks.network.ModNetworking;
 import com.leclowndu93150.bobo_tweaks.registry.ModAttributes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -127,8 +129,10 @@ public class InitiativeEnchantment extends EventHandlingEnchantment {
                 EnchantmentTracker.applyTimedModifier(attacker, Attributes.ARMOR, "initiative_armor",
                         "Initiative Armor", armorBoost / 100.0, AttributeModifier.Operation.MULTIPLY_TOTAL, duration);
                 
-                attacker.level().playSound(null, attacker.blockPosition(), SoundEvents.FIREWORK_ROCKET_LAUNCH,
-                        SoundSource.PLAYERS, 1.0F, 1.0F);
+                if (attacker.level() instanceof ServerLevel serverLevel) {
+                    ModNetworking.playSound(serverLevel, attacker.getX(), attacker.getY(), attacker.getZ(),
+                            SoundEvents.FIREWORK_ROCKET_LAUNCH, SoundSource.PLAYERS, 1.0F, 1.0F);
+                }
                 
                 data.putLong("last_hurt_time", currentTime);
             }

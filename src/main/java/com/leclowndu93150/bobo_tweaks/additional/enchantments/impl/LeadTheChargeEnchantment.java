@@ -3,12 +3,14 @@ package com.leclowndu93150.bobo_tweaks.additional.enchantments.impl;
 import com.leclowndu93150.bobo_tweaks.additional.enchantments.base.EventHandlingEnchantment;
 import com.leclowndu93150.bobo_tweaks.additional.enchantments.config.EnchantmentModuleConfig;
 import com.leclowndu93150.bobo_tweaks.additional.enchantments.tracking.EnchantmentTracker;
+import com.leclowndu93150.bobo_tweaks.network.ModNetworking;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -69,20 +71,22 @@ public class LeadTheChargeEnchantment extends EventHandlingEnchantment {
 
     private void handleLeadTheChargeAttack(Player attacker, Entity target) {
         int leadLevel = getEnchantmentLevelFromCategory(attacker, EnchantmentModuleConfig.LeadTheCharge.category);
-        
+
+
         if (leadLevel > 0 && attacker.isSprinting() && target instanceof LivingEntity livingTarget) {
             UUID attackerId = attacker.getUUID();
             long currentTime = System.currentTimeMillis();
             
             String cooldownKey = "lead_charge_cooldown";
             if (EnchantmentTracker.isOnCooldown(attackerId, cooldownKey, currentTime)) return;
-            
             int cooldown = EnchantmentModuleConfig.LeadTheCharge.baseCooldown -
                     (leadLevel - 1) * EnchantmentModuleConfig.LeadTheCharge.cooldownDecreasePerLevel;
             EnchantmentTracker.setCooldown(attackerId, cooldownKey, currentTime + (cooldown * 50L));
             
-            attacker.level().playSound(null, attacker.blockPosition(), SoundEvents.RAVAGER_ATTACK,
-                    SoundSource.PLAYERS, 1.0F, 1.0F);
+            if (attacker.level() instanceof ServerLevel serverLevel) {
+                ModNetworking.playSound(serverLevel, attacker.getX(), attacker.getY(), attacker.getZ(),
+                        SoundEvents.RAVAGER_ATTACK, SoundSource.PLAYERS, 1.0F, 1.0F);
+            }
 
             int slowDuration = 60;
             double slowAmount = EnchantmentModuleConfig.LeadTheCharge.enemySlowPercent / 100.0;

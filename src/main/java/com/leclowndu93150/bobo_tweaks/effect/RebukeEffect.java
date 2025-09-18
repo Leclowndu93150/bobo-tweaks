@@ -2,9 +2,11 @@ package com.leclowndu93150.bobo_tweaks.effect;
 
 import com.leclowndu93150.bobo_tweaks.BoboTweaks;
 import com.leclowndu93150.bobo_tweaks.config.ModConfig;
+import com.leclowndu93150.bobo_tweaks.network.ModNetworking;
 import com.leclowndu93150.bobo_tweaks.registry.ModPotions;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.effect.MobEffect;
@@ -73,8 +75,10 @@ public class RebukeEffect extends MobEffect {
                 DamageSource rebukeSource = target.level().damageSources().magic();
                 attacker.hurt(rebukeSource, totalDamage);
                 
-                target.level().playSound(null, target.getX(), target.getY(), target.getZ(),
-                    SoundEvents.ANVIL_LAND, SoundSource.PLAYERS, 0.8F, 1.0F);
+                if (target.level() instanceof ServerLevel serverLevel) {
+                    ModNetworking.playSound(serverLevel, target.getX(), target.getY(), target.getZ(),
+                        SoundEvents.ANVIL_LAND, SoundSource.PLAYERS, 0.8F, 1.0F);
+                }
                 
                 if (data.remainingNegations <= 0) {
                     rebukeDataMap.remove(target.getUUID());

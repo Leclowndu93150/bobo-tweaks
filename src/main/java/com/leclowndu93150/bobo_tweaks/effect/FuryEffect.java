@@ -2,6 +2,7 @@ package com.leclowndu93150.bobo_tweaks.effect;
 
 import com.leclowndu93150.bobo_tweaks.BoboTweaks;
 import com.leclowndu93150.bobo_tweaks.config.ModConfig;
+import com.leclowndu93150.bobo_tweaks.network.ModNetworking;
 import com.leclowndu93150.bobo_tweaks.registry.ModAttributes;
 import com.leclowndu93150.bobo_tweaks.registry.ModPotions;
 import com.leclowndu93150.bobo_tweaks.util.ModDamageSources;
@@ -9,6 +10,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffect;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
@@ -80,8 +82,10 @@ public class FuryEffect extends MobEffect {
                         DamageSource magicDamage = attacker.damageSources().magic();
                         target.hurt(magicDamage, data.magicDamageBonus);
 
-                        attacker.level().playSound(null, attacker.getX(), attacker.getY(), attacker.getZ(),
-                            SoundEvents.GHAST_SHOOT, SoundSource.PLAYERS, 1.0F, 1.0F);
+                        if (attacker.level() instanceof ServerLevel serverLevel) {
+                            ModNetworking.playSound(serverLevel, attacker.getX(), attacker.getY(), attacker.getZ(),
+                                SoundEvents.GHAST_SHOOT, SoundSource.PLAYERS, 1.0F, 1.0F);
+                        }
                         
                         data.remainingAttacks--;
                         

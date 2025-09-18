@@ -6,9 +6,14 @@ import com.leclowndu93150.bobo_tweaks.network.packet.AutoBowTogglePacket;
 import com.leclowndu93150.bobo_tweaks.network.packet.AutoCrossbowReleasePacket;
 import com.leclowndu93150.bobo_tweaks.network.packet.ClientboundJumpPacket;
 import com.leclowndu93150.bobo_tweaks.network.packet.JumpPacket;
+import com.leclowndu93150.bobo_tweaks.network.packet.PlaySoundPacket;
 import com.leclowndu93150.bobo_tweaks.network.packet.SyncJumpDataPacket;
+import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundSource;
 import net.minecraftforge.network.NetworkDirection;
 import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.PacketDistributor;
@@ -69,6 +74,13 @@ public class ModNetworking {
                 .encoder(AutoCrossbowReleasePacket::toBytes)
                 .consumerMainThread(AutoCrossbowReleasePacket::handle)
                 .add();
+                
+        // Register sound packet
+        net.messageBuilder(PlaySoundPacket.class, id(), NetworkDirection.PLAY_TO_CLIENT)
+                .decoder(PlaySoundPacket::new)
+                .encoder(PlaySoundPacket::toBytes)
+                .consumerMainThread(PlaySoundPacket::handle)
+                .add();
     }
 
     public static <MSG> void sendToServer(MSG message) {
@@ -81,5 +93,15 @@ public class ModNetworking {
 
     public static <MSG> void sendToClients(MSG message) {
         INSTANCE.send(PacketDistributor.ALL.noArg(), message);
+    }
+    
+    public static void playSound(ServerLevel level, double x, double y, double z, SoundEvent sound, SoundSource source, float volume, float pitch) {
+        PlaySoundPacket packet = new PlaySoundPacket(sound, source, x, y, z, volume, pitch);
+        INSTANCE.send(PacketDistributor.NEAR.with(() -> new PacketDistributor.TargetPoint(x, y, z, 64.0, level.dimension())), packet);
+    }
+    
+    public static void playSoundToPlayer(ServerPlayer player, double x, double y, double z, SoundEvent sound, SoundSource source, float volume, float pitch) {
+        PlaySoundPacket packet = new PlaySoundPacket(sound, source, x, y, z, volume, pitch);
+        sendToPlayer(packet, player);
     }
 }

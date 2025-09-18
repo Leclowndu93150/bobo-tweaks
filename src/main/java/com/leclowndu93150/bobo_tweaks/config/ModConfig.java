@@ -136,7 +136,7 @@ public class ModConfig {
                 .defineInRange("base_absorption_percentage", 0.25, 0.1, 2.0);
             wardenScalingFactor = builder
                 .comment("Additional absorption per point of damage amplifier (5.0 = 5 absorption per point)")
-                .defineInRange("scaling_factor", 5.0, 1.0, 20.0);
+                .defineInRange("scaling_factor", 5.0, 1.0, 200.0);
             builder.pop();
             
             builder.push("mystical_shield");

@@ -9,6 +9,7 @@
     "AbstractSpellCastTimeMixin",
     "AnvilMenuMixin",
     "AttributeEventsMixin",
+    "BundleItemMixin",
     "MagicManagerMixin",
     "PlayerMixin",
     "SmithingMenuMixin",
