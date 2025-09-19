@@ -116,15 +116,13 @@ public class ModAttributes {
     
     public static final RegistryObject<Attribute> LEECH_CAP = ATTRIBUTES.register("leech_cap",
         () -> new RangedAttribute("attribute." + BoboTweaks.MODID + ".leech_cap", 0.0D, 0.0D, 1024.0D).setSyncable(true));
-    
-    // Spell Leech Attributes (renamed from Life Leech for spells only)
+
     public static final RegistryObject<Attribute> SPELL_LEECH = ATTRIBUTES.register("spell_leech",
         () -> new RangedAttribute("attribute." + BoboTweaks.MODID + ".spell_leech", 0.0D, 0.0D, 1.0D).setSyncable(true));
     
     public static final RegistryObject<Attribute> SPELL_LEECH_CAP = ATTRIBUTES.register("spell_leech_cap",
         () -> new RangedAttribute("attribute." + BoboTweaks.MODID + ".spell_leech_cap", 0.0D, 0.0D, 1024.0D).setSyncable(true));
-    
-    // Lifesteal Attributes (for melee/ranged attacks)
+
     public static final RegistryObject<Attribute> LIFESTEAL = ATTRIBUTES.register("lifesteal",
         () -> new RangedAttribute("attribute." + BoboTweaks.MODID + ".lifesteal", 0.0D, 0.0D, 1.0D).setSyncable(true));
     

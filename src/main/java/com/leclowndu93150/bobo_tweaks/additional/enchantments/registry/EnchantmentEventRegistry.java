@@ -64,6 +64,7 @@ public class EnchantmentEventRegistry {
     }
 
     public static void onLivingHurt(LivingHurtEvent event) {
+        if (event.getEntity().level().isClientSide()) return;
         ensureEnchantmentsLoaded();
         for (EventHandlingEnchantment enchantment : ENCHANTMENTS) {
             enchantment.onLivingHurt(event);
@@ -71,6 +72,7 @@ public class EnchantmentEventRegistry {
     }
 
     public static void onLivingAttack(LivingAttackEvent event) {
+        if (event.getEntity().level().isClientSide()) return;
         ensureEnchantmentsLoaded();
         for (EventHandlingEnchantment enchantment : ENCHANTMENTS) {
             enchantment.onLivingAttack(event);
@@ -78,6 +80,7 @@ public class EnchantmentEventRegistry {
     }
 
     public static void onShieldBlock(ShieldBlockEvent event) {
+        if (event.getEntity().level().isClientSide()) return;
         ensureEnchantmentsLoaded();
         for (EventHandlingEnchantment enchantment : ENCHANTMENTS) {
             enchantment.onShieldBlock(event);
@@ -85,6 +88,7 @@ public class EnchantmentEventRegistry {
     }
 
     public static void onLivingDeath(LivingDeathEvent event) {
+        if (event.getEntity().level().isClientSide()) return;
         ensureEnchantmentsLoaded();
         for (EventHandlingEnchantment enchantment : ENCHANTMENTS) {
             enchantment.onLivingDeath(event);
@@ -92,6 +96,7 @@ public class EnchantmentEventRegistry {
     }
 
     public static void onSpellCast(SpellOnCastEvent event) {
+        if (event.getEntity().level().isClientSide()) return;
         ensureEnchantmentsLoaded();
         for (EventHandlingEnchantment enchantment : ENCHANTMENTS) {
             enchantment.onSpellCast(event);
@@ -116,6 +121,7 @@ public class EnchantmentEventRegistry {
     }
 
     public static void onCriticalHit(CriticalHitEvent event) {
+        if (event.getEntity().level().isClientSide()) return;
         ensureEnchantmentsLoaded();
         for (EventHandlingEnchantment enchantment : ENCHANTMENTS) {
             enchantment.onCriticalHit(event);
