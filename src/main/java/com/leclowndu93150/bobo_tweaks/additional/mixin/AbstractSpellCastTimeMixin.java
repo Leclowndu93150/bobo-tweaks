@@ -36,11 +36,14 @@ public abstract class AbstractSpellCastTimeMixin {
             
             if (schoolSpecificCTR != 1.0) {
                 if (getCastType() != CastType.CONTINUOUS) {
-                    // For non-continuous spells: higher CTR = shorter cast time
-                    return 2 - Utils.softCapFormula(schoolSpecificCTR);
+                    // For non-continuous spells: stack school-specific CTR with general CTR
+                    // Both use the 2 - Utils.softCapFormula() approach, so we need to reverse it first
+                    double generalCTR = 2.0 - entityCastTimeModifier;
+                    double combinedCTR = generalCTR * schoolSpecificCTR;
+                    return 2 - Utils.softCapFormula(combinedCTR);
                 } else {
-                    // For continuous spells: higher CTR = longer duration
-                    return schoolSpecificCTR;
+                    // For continuous spells: stack by multiplying
+                    return entityCastTimeModifier * schoolSpecificCTR;
                 }
             }
         }

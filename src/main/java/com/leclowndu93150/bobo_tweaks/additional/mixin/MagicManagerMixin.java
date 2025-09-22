@@ -26,7 +26,8 @@ public class MagicManagerMixin {
         double schoolSpecificCDR = bobo_tweaks$getSchoolSpecificCDR(player, school);
         
         if (schoolSpecificCDR != 1.0) {
-            return schoolSpecificCDR;
+            // Stack school-specific CDR with general CDR by multiplying them
+            return playerCooldownModifier * schoolSpecificCDR;
         }
         
         return playerCooldownModifier;
