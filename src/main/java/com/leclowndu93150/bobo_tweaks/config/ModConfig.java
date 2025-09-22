@@ -256,7 +256,7 @@ public class ModConfig {
             builder.push("rejuvenating_shots_effect");
             rejuvenatingShotsFlatHeal = builder
                 .comment("Base heal amount per level (multiplied by crit rate)")
-                .defineInRange("flat_heal", 5.0, 1.0, 50.0);
+                .defineInRange("flat_heal", 5.0, 0.001, 50.0);
             rejuvenatingShotsManaPercentage = builder
                 .comment("Percentage of max mana added to healing per level (0.01 = 1%)")
                 .defineInRange("mana_percentage", 0.01, 0.001, 0.1);

@@ -5,12 +5,10 @@ import com.leclowndu93150.bobo_tweaks.additional.enchantments.config.Enchantment
 import com.leclowndu93150.bobo_tweaks.additional.enchantments.tracking.EnchantmentTracker;
 import com.leclowndu93150.bobo_tweaks.network.ModNetworking;
 import com.leclowndu93150.bobo_tweaks.registry.ModAttributes;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
@@ -86,16 +84,6 @@ public class RisingEdgeEnchantment extends EventHandlingEnchantment {
             
             String cooldownKey = "rising_edge_cooldown";
             if (!EnchantmentTracker.isOnCooldown(attackerId, cooldownKey, currentTime)) {
-                int cooldown = EnchantmentModuleConfig.RisingEdge.PassiveA.baseCooldown -
-                        (risingLevel - 1) * EnchantmentModuleConfig.RisingEdge.PassiveA.cooldownReductionPerLevel;
-                EnchantmentTracker.setCooldown(attackerId, cooldownKey, currentTime + (cooldown * 50L));
-                
-                double knockUpDistance = EnchantmentModuleConfig.RisingEdge.PassiveA.baseKnockUp +
-                        (risingLevel - 1) * EnchantmentModuleConfig.RisingEdge.PassiveA.knockUpPerLevel;
-                
-                target.setDeltaMovement(target.getDeltaMovement().add(0, knockUpDistance, 0));
-                target.hurtMarked = true;
-                
                 target.addEffect(new MobEffectInstance(MobEffects.SLOW_FALLING,
                         EnchantmentModuleConfig.RisingEdge.PassiveA.slowFallingDuration, 0, false, true, true));
                 
@@ -121,7 +109,6 @@ public class RisingEdgeEnchantment extends EventHandlingEnchantment {
                 if (!EnchantmentTracker.isOnCooldown(attackerId, cooldownKey, currentTime)) {
                     AttributeInstance damageAmpInstance = attacker.getAttribute(ModAttributes.DAMAGE_AMPLIFIER.get());
                     double totalBoost = getTotalBoost(damageAmpInstance, risingLevel);
-
                     event.setAmount(event.getAmount() * (float)(1 + totalBoost));
                 }
             }

@@ -68,15 +68,10 @@ public class ReprisalEnchantment extends EventHandlingEnchantment {
             handleReprisalTrigger(player, event.getSource());
         }
 
-        // Handle sound and message for active reprisal
         if (event.getSource().getEntity() instanceof Player attacker) {
             if (EnchantmentTracker.hasEnchantmentFlag(attacker.getUUID(), "reprisal_active")) {
                 if (!attacker.level().isClientSide()) {
-                    if (attacker.level() instanceof ServerLevel serverLevel) {
-                        ModNetworking.playSound(serverLevel, attacker.getX(), attacker.getY(), attacker.getZ(),
-                                SoundEvents.ELDER_GUARDIAN_HURT_LAND, SoundSource.PLAYERS, 1.0F, 1.0F);
-                    }
-                    attacker.sendSystemMessage(Component.literal("Reprisal: +15% Damage!"));
+                    ModNetworking.playSound((ServerLevel) event.getEntity().level(), event.getEntity().getX(), event.getEntity().getY(), event.getEntity().getZ(), SoundEvents.ELDER_GUARDIAN_HURT, SoundSource.PLAYERS, 1.0F, 1.0F);
                 }
             }
         }

@@ -111,9 +111,9 @@ public class ModEventHandler {
 
         if (event.getSource().getEntity() instanceof LivingEntity attacker) {
             AttributeInstance damageAmpInstance = attacker.getAttribute(ModAttributes.DAMAGE_AMPLIFIER.get());
-            if (damageAmpInstance != null && damageAmpInstance.getValue() > 0) {
+            if (damageAmpInstance != null && damageAmpInstance.getValue() > 1.0) {
                 float originalDamage = event.getAmount();
-                float amplifier = (float) (1.0 + damageAmpInstance.getValue());
+                float amplifier = (float) damageAmpInstance.getValue();
                 event.setAmount(originalDamage * amplifier);
             }
         }

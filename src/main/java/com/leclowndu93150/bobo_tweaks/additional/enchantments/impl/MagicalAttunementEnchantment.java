@@ -4,10 +4,12 @@ import com.leclowndu93150.bobo_tweaks.additional.enchantments.base.EventHandling
 import com.leclowndu93150.bobo_tweaks.additional.enchantments.config.EnchantmentModuleConfig;
 import com.leclowndu93150.bobo_tweaks.additional.enchantments.tracking.EnchantmentTracker;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.TickTask;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
+import net.minecraftforge.event.entity.living.LivingHurtEvent;
 
 import java.util.UUID;
 
@@ -78,7 +80,7 @@ public class MagicalAttunementEnchantment extends EventHandlingEnchantment {
     }
 
     @Override
-    public void onLivingAttack(LivingAttackEvent event) {
+    public void onLivingHurt(LivingHurtEvent event) {
         if (!EnchantmentModuleConfig.MagicalAttunement.enabled) return;
 
         if (event.getSource().getEntity() instanceof Player attacker) {
@@ -86,7 +88,7 @@ public class MagicalAttunementEnchantment extends EventHandlingEnchantment {
         }
     }
 
-    private void handleMagicalAttunementDamage(Player attacker, LivingAttackEvent event) {
+    private void handleMagicalAttunementDamage(Player attacker, LivingHurtEvent event) {
         UUID attackerId = attacker.getUUID();
         if (!EnchantmentTracker.hasEnchantmentFlag(attackerId, "magical_attunement_ready")) return;
 
@@ -98,11 +100,11 @@ public class MagicalAttunementEnchantment extends EventHandlingEnchantment {
             final float lightningDamage = (float)(baseDamage + manaBonus);
 
             if (attacker.level().getServer() != null) {
-                attacker.level().getServer().execute(() -> {
+                attacker.level().getServer().tell(new TickTask(1, () -> {
                     if (event.getEntity().isAlive()) {
                         event.getEntity().hurt(attacker.damageSources().lightningBolt(), lightningDamage);
                     }
-                });
+                }));
             }
 
             CompoundTag data = EnchantmentTracker.getOrCreateEnchantmentData(attackerId);

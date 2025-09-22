@@ -156,6 +156,7 @@ dependencies {
     implementation fg.deobf("curse.maven:cloth-config-348521:5729105")
     implementation fg.deobf("curse.maven:mmmmmmmmmmmm-225738:6860192")
     implementation fg.deobf("curse.maven:selene-499980:7007554")
+    implementation fg.deobf("curse.maven:jade-324717:6855440")
     compileOnly fg.deobf(files("libs/MoreCrossbows-CJ-forge-mc-1.20-2.0.1.jar"))
 
 
