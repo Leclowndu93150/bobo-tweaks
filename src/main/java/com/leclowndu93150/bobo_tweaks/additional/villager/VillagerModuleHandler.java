@@ -110,10 +110,8 @@ public class VillagerModuleHandler {
     private static void handleShelterPenalties(Villager villager, VillagerPenaltyManager.PenaltyData data) {
         Set<Block> shelterBlocks = VillagerModuleConfig.getShelterBlocks();
         
-        // Ensure shelter blocks are initialized
         if (shelterBlocks.isEmpty()) {
-            VillagerModuleConfig.resetCache();
-            shelterBlocks = VillagerModuleConfig.getShelterBlocks();
+            return;
         }
         
         BlockPos villagerPos = villager.blockPosition();
@@ -123,28 +121,30 @@ public class VillagerModuleHandler {
         boolean hasHeadShelter = false;
         boolean hasFeetShelter = false;
         
-        // Check for shelter above head (villager height is about 2 blocks)
         BlockPos headPos = villagerPos.above(2);
+        
         for (int y = 1; y <= checkRadius; y++) {
-            BlockPos checkPos = headPos.above(y);
-            BlockState state = level.getBlockState(checkPos);
-            if (!state.isAir() && (shelterBlocks.contains(state.getBlock()) || state.isSolidRender(level, checkPos))) {
-                hasHeadShelter = true;
+            if (!hasHeadShelter) {
+                BlockPos headCheckPos = headPos.above(y);
+                BlockState headState = level.getBlockState(headCheckPos);
+                if (!headState.isAir() && (shelterBlocks.contains(headState.getBlock()) || headState.isSolidRender(level, headCheckPos))) {
+                    hasHeadShelter = true;
+                }
+            }
+            
+            if (!hasFeetShelter) {
+                BlockPos feetCheckPos = villagerPos.above(y);
+                BlockState feetState = level.getBlockState(feetCheckPos);
+                if (!feetState.isAir() && (shelterBlocks.contains(feetState.getBlock()) || feetState.isSolidRender(level, feetCheckPos))) {
+                    hasFeetShelter = true;
+                }
+            }
+            
+            if (hasHeadShelter && hasFeetShelter) {
                 break;
             }
         }
         
-        // Check for shelter above feet
-        for (int y = 1; y <= checkRadius; y++) {
-            BlockPos checkPos = villagerPos.above(y);
-            BlockState state = level.getBlockState(checkPos);
-            if (!state.isAir() && (shelterBlocks.contains(state.getBlock()) || state.isSolidRender(level, checkPos))) {
-                hasFeetShelter = true;
-                break;
-            }
-        }
-        
-        // Apply penalty based on configuration
         boolean needsPenalty = VillagerModuleConfig.requireBothHeadAndFeetShelter 
             ? (!hasHeadShelter || !hasFeetShelter)
             : (!hasHeadShelter && !hasFeetShelter);
@@ -155,7 +155,6 @@ public class VillagerModuleHandler {
             data.setShelterPenalty(0);
         }
         
-        // Force price update
         VillagerPenaltyManager.forceUpdatePrices(villager);
     }
     

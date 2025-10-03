@@ -8,7 +8,7 @@ import com.google.gson.JsonElement;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.core.registries.BuiltInRegistries;
 
 import java.io.File;
 import java.io.FileReader;
@@ -16,6 +16,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
 import java.util.regex.Pattern;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class VillagerModuleConfig {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
@@ -53,8 +54,9 @@ public class VillagerModuleConfig {
     
     // Shelter blocks list with wildcard support
     private static List<String> shelterBlockPatterns = new ArrayList<>();
-    private static final Set<Block> shelterBlockCache = new HashSet<>();
-    private static boolean cacheInitialized = false;
+    private static final Set<Block> shelterBlockCache = ConcurrentHashMap.newKeySet();
+    private static final Map<String, Pattern> compiledPatterns = new ConcurrentHashMap<>();
+    private static volatile boolean cacheInitialized = false;
     
     static {
         // Default shelter blocks
@@ -202,8 +204,6 @@ public class VillagerModuleConfig {
         } else {
             save();
         }
-
-        cacheInitialized = false;
     }
     
     public static void save() {
@@ -289,21 +289,18 @@ public class VillagerModuleConfig {
     public static void addShelterBlock(String pattern) {
         if (!shelterBlockPatterns.contains(pattern)) {
             shelterBlockPatterns.add(pattern);
-            cacheInitialized = false;
             save();
         }
     }
     
     public static void removeShelterBlock(String pattern) {
         if (shelterBlockPatterns.remove(pattern)) {
-            cacheInitialized = false;
             save();
         }
     }
     
     public static void clearShelterBlocks() {
         shelterBlockPatterns.clear();
-        cacheInitialized = false;
         save();
     }
     
@@ -319,28 +316,34 @@ public class VillagerModuleConfig {
     }
     
     private static void initializeShelterCache() {
-        shelterBlockCache.clear();
+        if (cacheInitialized) return;
         
-        for (String pattern : shelterBlockPatterns) {
-            String regex = pattern
-                .replace(".", "\\.")
-                .replace("*", ".*")
-                .replace("?", ".");
+        synchronized (VillagerModuleConfig.class) {
+            if (cacheInitialized) return;
             
-            Pattern compiledPattern = Pattern.compile(regex);
+            shelterBlockCache.clear();
+            
+            compiledPatterns.clear();
+            for (String pattern : shelterBlockPatterns) {
+                String regex = pattern
+                    .replace(".", "\\.")
+                    .replace("*", ".*")
+                    .replace("?", ".");
+                compiledPatterns.put(pattern, Pattern.compile(regex));
+            }
 
-            for (Map.Entry<ResourceKey<Block>, Block> entry : ForgeRegistries.BLOCKS.getEntries()) {
-                String blockId = entry.getKey().toString();
-                if (compiledPattern.matcher(blockId).matches()) {
-                    shelterBlockCache.add(entry.getValue());
+            for (Map.Entry<ResourceKey<Block>, Block> entry : BuiltInRegistries.BLOCK.entrySet()) {
+                String blockId = entry.getKey().location().toString();
+                for (Pattern compiledPattern : compiledPatterns.values()) {
+                    if (compiledPattern.matcher(blockId).matches()) {
+                        shelterBlockCache.add(entry.getValue());
+                        break;
+                    }
                 }
             }
+            
+            cacheInitialized = true;
         }
-        
-        cacheInitialized = true;
     }
     
-    public static void resetCache() {
-        cacheInitialized = false;
-    }
 }

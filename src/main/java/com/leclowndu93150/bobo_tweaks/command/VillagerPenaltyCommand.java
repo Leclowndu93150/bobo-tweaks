@@ -179,7 +179,6 @@ public class VillagerPenaltyCommand {
     
     private static int reloadConfig(CommandSourceStack source) {
         VillagerModuleConfig.load();
-        VillagerModuleConfig.resetCache();
         source.sendSuccess(() -> Component.literal("Reloaded villager module configuration"), true);
         return 1;
     }
