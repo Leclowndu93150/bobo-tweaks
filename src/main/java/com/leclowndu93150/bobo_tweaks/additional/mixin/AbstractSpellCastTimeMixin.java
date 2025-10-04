@@ -75,6 +75,8 @@ public abstract class AbstractSpellCastTimeMixin {
             schoolAttribute = ModAttributes.NATURE_CAST_TIME_REDUCTION;
         } else if (school.equals(SchoolRegistry.ELDRITCH.get())) {
             schoolAttribute = ModAttributes.ELDRITCH_CAST_TIME_REDUCTION;
+        } else {
+            schoolAttribute = bobo_tweaks$getModdedSchoolCTR(school);
         }
         
         if (schoolAttribute != null) {
@@ -82,5 +84,18 @@ public abstract class AbstractSpellCastTimeMixin {
         }
         
         return 1.0;
+    }
+    
+    @Unique
+    private static RegistryObject<Attribute> bobo_tweaks$getModdedSchoolCTR(SchoolType school) {
+        String schoolId = school.getId().toString();
+        
+        if (schoolId.equals("traveloptics:aqua")) {
+            return ModAttributes.AQUA_CAST_TIME_REDUCTION;
+        } else if (schoolId.equals("gtbcs_geomancy_plus:geo")) {
+            return ModAttributes.GEO_CAST_TIME_REDUCTION;
+        }
+        
+        return null;
     }
 }

@@ -48,8 +48,9 @@ public class ModAttributes {
         () -> new RangedAttribute("attribute." + BoboTweaks.MODID + ".jump_count", 1.0D, 1.0D, 100.0D).setSyncable(true));
     
     // New Attributes
-    public static final RegistryObject<Attribute> ABSORPTION_MULTIPLIER = ATTRIBUTES.register("absorption_multiplier",
-        () -> new RangedAttribute("attribute." + BoboTweaks.MODID + ".absorption_multiplier", 1.0D, 0.0D, 10.0D).setSyncable(true));
+    // REMOVED: Absorption multiplier replaced by 4 school-specific attributes below
+    // public static final RegistryObject<Attribute> ABSORPTION_MULTIPLIER = ATTRIBUTES.register("absorption_multiplier",
+    //     () -> new RangedAttribute("attribute." + BoboTweaks.MODID + ".absorption_multiplier", 1.0D, 0.0D, 10.0D).setSyncable(true));
     
     public static final RegistryObject<Attribute> MAX_HP_REGEN = ATTRIBUTES.register("max_hp_regen",
         () -> new RangedAttribute("attribute." + BoboTweaks.MODID + ".max_hp_regen", 0.0D, 0.0D, 1.0D).setSyncable(true));
@@ -109,6 +110,20 @@ public class ModAttributes {
     
     public static final RegistryObject<Attribute> ELDRITCH_CAST_TIME_REDUCTION = ATTRIBUTES.register("eldritch_cast_time_reduction",
         () -> new RangedAttribute("attribute." + BoboTweaks.MODID + ".eldritch_cast_time_reduction", 1.0D, 0.0D, 10.0D).setSyncable(true));
+    
+    // Travel Optics Aqua School Attributes
+    public static final RegistryObject<Attribute> AQUA_CAST_TIME_REDUCTION = ATTRIBUTES.register("aqua_cast_time_reduction",
+        () -> new RangedAttribute("attribute." + BoboTweaks.MODID + ".aqua_cast_time_reduction", 1.0D, 0.0D, 10.0D).setSyncable(true));
+    
+    public static final RegistryObject<Attribute> AQUA_COOLDOWN_REDUCTION = ATTRIBUTES.register("aqua_cooldown_reduction",
+        () -> new RangedAttribute("attribute." + BoboTweaks.MODID + ".aqua_cooldown_reduction", 1.0D, 0.0D, 10.0D).setSyncable(true));
+    
+    // Geomancy Plus Geo School Attributes
+    public static final RegistryObject<Attribute> GEO_CAST_TIME_REDUCTION = ATTRIBUTES.register("geo_cast_time_reduction",
+        () -> new RangedAttribute("attribute." + BoboTweaks.MODID + ".geo_cast_time_reduction", 1.0D, 0.0D, 10.0D).setSyncable(true));
+    
+    public static final RegistryObject<Attribute> GEO_COOLDOWN_REDUCTION = ATTRIBUTES.register("geo_cooldown_reduction",
+        () -> new RangedAttribute("attribute." + BoboTweaks.MODID + ".geo_cooldown_reduction", 1.0D, 0.0D, 10.0D).setSyncable(true));
     
     // Leech Attributes
     public static final RegistryObject<Attribute> LIFE_LEECH = ATTRIBUTES.register("life_leech",

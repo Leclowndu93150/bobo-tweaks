@@ -5,7 +5,6 @@
   "compatibilityLevel": "JAVA_8",
   "refmap": "bobo_tweaks.refmap.json",
   "mixins": [
-    "AbsorptionEffectMixin",
     "AbstractSpellCastTimeMixin",
     "AnvilMenuMixin",
     "AttributeEventsMixin",

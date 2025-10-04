@@ -249,6 +249,24 @@ public class EnchantmentModuleConfig {
         public static int baseCooldown = 200;
         public static int cooldownReductionPerLevel = 20;
     }
+    
+    public static class GlassSpirit {
+        public static boolean enabled = true;
+        public static String category = "ARMOR_CHEST";
+        public static int maxLevel = 3;
+        
+        public static class PassiveA {
+            public static double baseDamageAmplifierBoost = 15.0;
+            public static double amplifierBoostPerLevel = 5.0;
+        }
+        
+        public static class PassiveB {
+            public static double critRateReduction = 20.0;
+            public static double critDamageReduction = 25.0;
+            public static int baseDuration = 100;
+            public static int durationDecreasePerLevel = 10;
+        }
+    }
 
     public static EnchantmentCategory getCategoryFromString(String categoryName) {
         return switch (categoryName.toUpperCase()) {
@@ -297,6 +315,7 @@ public class EnchantmentModuleConfig {
                 loadRisingEdge(json);
                 loadSniper(json);
                 loadOnARoll(json);
+                loadGlassSpirit(json);
                 
                 migrateConfig(json);
                 
@@ -596,6 +615,29 @@ public class EnchantmentModuleConfig {
         }
     }
     
+    private static void loadGlassSpirit(JsonObject json) {
+        if (json.has("glass_spirit")) {
+            JsonObject glassSpirit = json.getAsJsonObject("glass_spirit");
+            if (glassSpirit.has("enabled")) GlassSpirit.enabled = glassSpirit.get("enabled").getAsBoolean();
+            if (glassSpirit.has("category")) GlassSpirit.category = glassSpirit.get("category").getAsString();
+            if (glassSpirit.has("max_level")) GlassSpirit.maxLevel = glassSpirit.get("max_level").getAsInt();
+            
+            if (glassSpirit.has("passive_a")) {
+                JsonObject passiveA = glassSpirit.getAsJsonObject("passive_a");
+                if (passiveA.has("base_damage_amplifier_boost")) GlassSpirit.PassiveA.baseDamageAmplifierBoost = passiveA.get("base_damage_amplifier_boost").getAsDouble();
+                if (passiveA.has("amplifier_boost_per_level")) GlassSpirit.PassiveA.amplifierBoostPerLevel = passiveA.get("amplifier_boost_per_level").getAsDouble();
+            }
+            
+            if (glassSpirit.has("passive_b")) {
+                JsonObject passiveB = glassSpirit.getAsJsonObject("passive_b");
+                if (passiveB.has("crit_rate_reduction")) GlassSpirit.PassiveB.critRateReduction = passiveB.get("crit_rate_reduction").getAsDouble();
+                if (passiveB.has("crit_damage_reduction")) GlassSpirit.PassiveB.critDamageReduction = passiveB.get("crit_damage_reduction").getAsDouble();
+                if (passiveB.has("base_duration")) GlassSpirit.PassiveB.baseDuration = passiveB.get("base_duration").getAsInt();
+                if (passiveB.has("duration_decrease_per_level")) GlassSpirit.PassiveB.durationDecreasePerLevel = passiveB.get("duration_decrease_per_level").getAsInt();
+            }
+        }
+    }
+    
     private static void migrateConfig(JsonObject json) {
         boolean needsSave = false;
         
@@ -604,7 +646,7 @@ public class EnchantmentModuleConfig {
             "enabled", "enchantment_cap", "reprisal", "momentum", "spellblade", 
             "magical_attunement", "perfectionist", "hunter", "multiscale", 
             "invigorating_defenses", "life_surge", "shadow_walker", "initiative", 
-            "saints_pledge", "lead_the_charge", "rising_edge", "sniper", "on_a_roll"
+            "saints_pledge", "lead_the_charge", "rising_edge", "sniper", "on_a_roll", "glass_spirit"
         );
         
         for (String expected : expectedEnchants) {
@@ -644,6 +686,7 @@ public class EnchantmentModuleConfig {
             saveRisingEdge(json);
             saveSniper(json);
             saveOnARoll(json);
+            saveGlassSpirit(json);
             
             try (FileWriter writer = new FileWriter(CONFIG_FILE)) {
                 GSON.toJson(json, writer);
@@ -1026,5 +1069,35 @@ public class EnchantmentModuleConfig {
         onARoll.addProperty("base_cooldown", OnARoll.baseCooldown);
         onARoll.addProperty("cooldown_reduction_per_level", OnARoll.cooldownReductionPerLevel);
         json.add("on_a_roll", onARoll);
+    }
+    
+    private static void saveGlassSpirit(JsonObject json) {
+        JsonObject glassSpirit = new JsonObject();
+        glassSpirit.addProperty("_description", "Glass Spirit: Gain damage amplifier at full health, but lose crit stats when hit.");
+        glassSpirit.addProperty("enabled", GlassSpirit.enabled);
+        glassSpirit.addProperty("category", GlassSpirit.category);
+        glassSpirit.addProperty("max_level", GlassSpirit.maxLevel);
+        
+        JsonObject passiveA = new JsonObject();
+        passiveA.addProperty("_description", "Passive A: Damage amplifier boost when at full health");
+        passiveA.addProperty("_base_damage_amplifier_boost_description", "Base damage amplifier boost in percentage at full health.");
+        passiveA.addProperty("base_damage_amplifier_boost", GlassSpirit.PassiveA.baseDamageAmplifierBoost);
+        passiveA.addProperty("_amplifier_boost_per_level_description", "Additional damage amplifier boost per level in percentage.");
+        passiveA.addProperty("amplifier_boost_per_level", GlassSpirit.PassiveA.amplifierBoostPerLevel);
+        glassSpirit.add("passive_a", passiveA);
+        
+        JsonObject passiveB = new JsonObject();
+        passiveB.addProperty("_description", "Passive B: Fragile effect when hit by direct attack");
+        passiveB.addProperty("_crit_rate_reduction_description", "Fixed critical rate reduction in percentage when hit (applies to all levels).");
+        passiveB.addProperty("crit_rate_reduction", GlassSpirit.PassiveB.critRateReduction);
+        passiveB.addProperty("_crit_damage_reduction_description", "Fixed critical damage reduction in percentage when hit (applies to all levels).");
+        passiveB.addProperty("crit_damage_reduction", GlassSpirit.PassiveB.critDamageReduction);
+        passiveB.addProperty("_base_duration_description", "Base duration of fragile effect in ticks (20 ticks = 1 second).");
+        passiveB.addProperty("base_duration", GlassSpirit.PassiveB.baseDuration);
+        passiveB.addProperty("_duration_decrease_per_level_description", "Duration decrease per level in ticks (higher level = shorter fragile duration).");
+        passiveB.addProperty("duration_decrease_per_level", GlassSpirit.PassiveB.durationDecreasePerLevel);
+        glassSpirit.add("passive_b", passiveB);
+        
+        json.add("glass_spirit", glassSpirit);
     }
 }

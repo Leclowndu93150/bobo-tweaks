@@ -51,7 +51,7 @@ public class ModEventHandler {
                     event.add(entityType, ModAttributes.ALCHEMICAL_BOOST.get());
                     event.add(entityType, ModAttributes.POWER_LINK.get());
                     event.add(entityType, ModAttributes.JUMP_COUNT.get());
-                    event.add(entityType, ModAttributes.ABSORPTION_MULTIPLIER.get());
+                    // REMOVED: event.add(entityType, ModAttributes.ABSORPTION_MULTIPLIER.get());
                     event.add(entityType, ModAttributes.MAX_HP_REGEN.get());
                     event.add(entityType, ModAttributes.FIRE_COOLDOWN_REDUCTION.get());
                     event.add(entityType, ModAttributes.ICE_COOLDOWN_REDUCTION.get());
@@ -71,6 +71,10 @@ public class ModEventHandler {
                     event.add(entityType, ModAttributes.EVOCATION_CAST_TIME_REDUCTION.get());
                     event.add(entityType, ModAttributes.NATURE_CAST_TIME_REDUCTION.get());
                     event.add(entityType, ModAttributes.ELDRITCH_CAST_TIME_REDUCTION.get());
+                    event.add(entityType, ModAttributes.AQUA_CAST_TIME_REDUCTION.get());
+                    event.add(entityType, ModAttributes.AQUA_COOLDOWN_REDUCTION.get());
+                    event.add(entityType, ModAttributes.GEO_CAST_TIME_REDUCTION.get());
+                    event.add(entityType, ModAttributes.GEO_COOLDOWN_REDUCTION.get());
                     event.add(entityType, ModAttributes.LIFE_LEECH.get());
                     event.add(entityType, ModAttributes.LEECH_CAP.get());
                     event.add(entityType, ModAttributes.SPELL_LEECH.get());

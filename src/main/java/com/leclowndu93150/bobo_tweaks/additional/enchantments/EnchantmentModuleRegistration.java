@@ -66,6 +66,9 @@ public class EnchantmentModuleRegistration {
     public static final RegistryObject<Enchantment> ON_A_ROLL = ENCHANTMENTS.register("on_a_roll",
             OnARollEnchantment::new);
     
+    public static final RegistryObject<Enchantment> GLASS_SPIRIT = ENCHANTMENTS.register("glass_spirit",
+            GlassSpiritEnchantment::new);
+    
     public static void register(IEventBus eventBus) {
         ENCHANTMENTS.register(eventBus);
         EnchantmentModuleConfig.load();

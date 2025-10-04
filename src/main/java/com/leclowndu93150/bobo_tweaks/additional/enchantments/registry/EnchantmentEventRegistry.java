@@ -60,6 +60,8 @@ public class EnchantmentEventRegistry {
                 ENCHANTMENTS.add((EventHandlingEnchantment) EnchantmentModuleRegistration.SNIPER.get());
             if (EnchantmentModuleRegistration.ON_A_ROLL.get() instanceof EventHandlingEnchantment)
                 ENCHANTMENTS.add((EventHandlingEnchantment) EnchantmentModuleRegistration.ON_A_ROLL.get());
+            if (EnchantmentModuleRegistration.GLASS_SPIRIT.get() instanceof EventHandlingEnchantment)
+                ENCHANTMENTS.add((EventHandlingEnchantment) EnchantmentModuleRegistration.GLASS_SPIRIT.get());
         }
     }
 
