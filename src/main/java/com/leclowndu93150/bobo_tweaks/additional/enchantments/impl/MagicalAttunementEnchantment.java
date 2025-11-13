@@ -3,6 +3,7 @@ package com.leclowndu93150.bobo_tweaks.additional.enchantments.impl;
 import com.leclowndu93150.bobo_tweaks.additional.enchantments.base.EventHandlingEnchantment;
 import com.leclowndu93150.bobo_tweaks.additional.enchantments.config.EnchantmentModuleConfig;
 import com.leclowndu93150.bobo_tweaks.additional.enchantments.tracking.EnchantmentTracker;
+import com.leclowndu93150.bobo_tweaks.registry.ModAttributes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.TickTask;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -97,7 +98,10 @@ public class MagicalAttunementEnchantment extends EventHandlingEnchantment {
         if (attunementLevel > 0) {
             double baseDamage = EnchantmentModuleConfig.MagicalAttunement.baseDamagePerLevel * attunementLevel;
             double manaBonus = EnchantmentTracker.getPlayerMaxMana(attacker) * EnchantmentModuleConfig.MagicalAttunement.maxManaPercent;
-            final float lightningDamage = (float)(baseDamage + manaBonus);
+            double totalDamage = baseDamage + manaBonus;
+            
+            double damageAmplifier = attacker.getAttributeValue(ModAttributes.DAMAGE_AMPLIFIER.get());
+            final float lightningDamage = (float)(totalDamage * damageAmplifier);
 
             if (attacker.level().getServer() != null) {
                 attacker.level().getServer().tell(new TickTask(1, () -> {

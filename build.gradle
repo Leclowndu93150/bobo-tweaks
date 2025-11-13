@@ -157,8 +157,10 @@ dependencies {
     implementation fg.deobf("curse.maven:mmmmmmmmmmmm-225738:6860192")
     implementation fg.deobf("curse.maven:selene-499980:7007554")
     implementation fg.deobf("curse.maven:jade-324717:6855440")
-    implementation fg.deobf("curse.maven:to-tweaks-irons-spells-1046916:7045420")
-    implementation fg.deobf("curse.maven:gtbcs-geomancy-plus-1352485:7041547")
+//    implementation fg.deobf("curse.maven:to-tweaks-irons-spells-1046916:7045420")
+//    implementation fg.deobf("curse.maven:gtbcs-geomancy-plus-1352485:7041547")
+//    implementation fg.deobf("curse.maven:alexs-caves-924854:5848216")
+//    implementation fg.deobf("curse.maven:gtbcs-spelllib-1194714:6973032")
     compileOnly fg.deobf(files("libs/MoreCrossbows-CJ-forge-mc-1.20-2.0.1.jar"))
 
 

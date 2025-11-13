@@ -5,6 +5,7 @@ import com.leclowndu93150.bobo_tweaks.additional.enchantments.config.Enchantment
 import com.leclowndu93150.bobo_tweaks.additional.enchantments.tracking.EnchantmentTracker;
 import com.leclowndu93150.bobo_tweaks.network.ModNetworking;
 import com.leclowndu93150.bobo_tweaks.registry.ModAttributes;
+import net.minecraft.core.BlockPos;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -14,6 +15,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
 
@@ -113,11 +115,10 @@ public class RisingEdgeEnchantment extends EventHandlingEnchantment {
                 }
             }
             
-            if (!target.onGround() || target.hasEffect(MobEffects.LEVITATION) || 
-                target.hasEffect(MobEffects.SLOW_FALLING) || target.isFallFlying()) {
-                double airborneDamage = EnchantmentModuleConfig.RisingEdge.PassiveB.baseAirborneDamage +
-                        (risingLevel - 1) * EnchantmentModuleConfig.RisingEdge.PassiveB.airborneDamagePerLevel;
-                event.setAmount(event.getAmount() + (float)airborneDamage);
+            if (isEntityAirborne(target)) {
+                double airborneDamageBoost = (EnchantmentModuleConfig.RisingEdge.PassiveB.baseAirborneDamage +
+                        (risingLevel - 1) * EnchantmentModuleConfig.RisingEdge.PassiveB.airborneDamagePerLevel) / 100.0;
+                event.setAmount(event.getAmount() * (float)(1 + airborneDamageBoost));
             }
         }
     }
@@ -129,5 +130,16 @@ public class RisingEdgeEnchantment extends EventHandlingEnchantment {
         double scaleFactor = EnchantmentModuleConfig.RisingEdge.PassiveA.baseScaleFactor +
                 (risingLevel - 1) * EnchantmentModuleConfig.RisingEdge.PassiveA.scaleFactorPerLevel;
         return baseDamageBoost * (1 + damageAmp * scaleFactor);
+    }
+
+    private boolean isEntityAirborne(LivingEntity entity) {
+        if (entity.hasEffect(MobEffects.LEVITATION) || entity.isFallFlying()) {
+            return true;
+        }
+        
+        BlockPos posBelow = entity.blockPosition().below();
+        BlockState blockBelow = entity.level().getBlockState(posBelow);
+        
+        return blockBelow.isAir() || blockBelow.canBeReplaced();
     }
 }

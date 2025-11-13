@@ -1,6 +1,5 @@
 package com.leclowndu93150.bobo_tweaks;
 
-import com.gametechbc.traveloptics.api.init.TravelopticsSchools;
 import com.leclowndu93150.bobo_tweaks.additional.autobow.AutoBowRegistration;
 import com.leclowndu93150.bobo_tweaks.additional.itempreservation.ItemPreservationRegistration;
 import com.leclowndu93150.bobo_tweaks.additional.effectimmunity.EffectImmunityRegistration;
