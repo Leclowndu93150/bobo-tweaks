@@ -5,6 +5,7 @@ import com.leclowndu93150.bobo_tweaks.additional.enchantments.config.Enchantment
 import com.leclowndu93150.bobo_tweaks.additional.enchantments.tracking.EnchantmentTracker;
 import com.leclowndu93150.bobo_tweaks.registry.ModAttributes;
 import io.redspace.ironsspellbooks.registries.MobEffectRegistry;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
@@ -63,12 +64,17 @@ public class ShadowWalkerEnchantment extends EventHandlingEnchantment {
     @Override
     public void onLivingDeath(LivingDeathEvent event) {
         if (!EnchantmentModuleConfig.ShadowWalker.enabled) return;
+        
+        if (!(event.getEntity() instanceof Mob)) return;
 
         if (event.getSource().getEntity() instanceof Player killer) {
-            handleShadowWalkerTrigger(killer, true);
+            int shadowLevel = getEnchantmentLevelFromCategory(killer, EnchantmentModuleConfig.ShadowWalker.category);
+            if (shadowLevel > 0) {
+                handleShadowWalkerKill(killer, shadowLevel, true);
+            }
+            
+            handleTeammateKillEffects(killer);
         }
-
-        handleTeammateKillEffects(event);
     }
 
     @Override
@@ -76,56 +82,61 @@ public class ShadowWalkerEnchantment extends EventHandlingEnchantment {
         if (!EnchantmentModuleConfig.ShadowWalker.enabled) return;
 
         if (event.getSource().getEntity() instanceof Player attacker) {
-            handleShadowWalkerInvisibilityDamage(attacker);
-        }
-    }
-
-    private void handleShadowWalkerTrigger(Player killer, boolean isDirectKill) {
-        int shadowLevel = getEnchantmentLevelFromCategory(killer, EnchantmentModuleConfig.ShadowWalker.category);
-
-        if (shadowLevel > 0) {
-            if (isDirectKill) {
-                MobEffect trueInvis = MobEffectRegistry.TRUE_INVISIBILITY.get();
-                if (trueInvis != null) {
-                    killer.addEffect(new MobEffectInstance(trueInvis, EnchantmentModuleConfig.ShadowWalker.invisibilityDuration, 0));
-                }
+            int shadowLevel = getEnchantmentLevelFromCategory(attacker, EnchantmentModuleConfig.ShadowWalker.category);
+            
+            if (shadowLevel > 0) {
+                applyInvisibilityDamageBoost(attacker, shadowLevel);
             }
-
-            EnchantmentTracker.applyTimedModifier(killer, Attributes.MOVEMENT_SPEED, "shadow_walker_speed",
-                    "Shadow Walker Speed",
-                    EnchantmentModuleConfig.ShadowWalker.movementSpeedPercent / 100.0,
-                    AttributeModifier.Operation.MULTIPLY_TOTAL,
-                    EnchantmentModuleConfig.ShadowWalker.movementSpeedDuration);
         }
     }
 
-    private void handleShadowWalkerInvisibilityDamage(Player attacker) {
-        int shadowLevel = getEnchantmentLevelFromCategory(attacker, EnchantmentModuleConfig.ShadowWalker.category);
+    private void handleShadowWalkerKill(Player killer, int shadowLevel, boolean isDirectKill) {
+        EnchantmentTracker.applyTimedModifier(killer, Attributes.MOVEMENT_SPEED, "shadow_walker_speed",
+                "Shadow Walker Speed",
+                EnchantmentModuleConfig.ShadowWalker.movementSpeedPercent / 100.0,
+                AttributeModifier.Operation.MULTIPLY_TOTAL,
+                EnchantmentModuleConfig.ShadowWalker.movementSpeedDuration);
 
-        if (shadowLevel > 0) {
-            boolean hasInvisibility = attacker.hasEffect(MobEffects.INVISIBILITY);
-            MobEffect trueInvisEffect = MobEffectRegistry.TRUE_INVISIBILITY.get();
-            boolean hasTrueInvisibility = trueInvisEffect != null && attacker.hasEffect(trueInvisEffect);
+        if (isDirectKill && killer.level() instanceof ServerLevel serverLevel) {
+            MobEffect trueInvis = MobEffectRegistry.TRUE_INVISIBILITY.get();
+            if (trueInvis != null) {
+                int delay = EnchantmentModuleConfig.ShadowWalker.invisibilityDelayTicks;
+                serverLevel.getServer().tell(new net.minecraft.server.TickTask(
+                    serverLevel.getServer().getTickCount() + delay,
+                    () -> {
+                        if (killer.isAlive()) {
+                            killer.addEffect(new MobEffectInstance(trueInvis, 
+                                EnchantmentModuleConfig.ShadowWalker.invisibilityDuration, 0, false, true, true));
+                        }
+                    }
+                ));
+            }
+        }
+    }
 
-            if (hasInvisibility || hasTrueInvisibility) {
-                double damageBoost = EnchantmentModuleConfig.ShadowWalker.baseDamageAmplifier +
-                        (shadowLevel - 1) * EnchantmentModuleConfig.ShadowWalker.damageAmplifierPerLevel;
+    private void applyInvisibilityDamageBoost(Player attacker, int shadowLevel) {
+        boolean hasInvisibility = attacker.hasEffect(MobEffects.INVISIBILITY);
+        MobEffect trueInvisEffect = MobEffectRegistry.TRUE_INVISIBILITY.get();
+        boolean hasTrueInvisibility = trueInvisEffect != null && attacker.hasEffect(trueInvisEffect);
 
+        if (hasInvisibility || hasTrueInvisibility) {
+            double flatBoost = EnchantmentModuleConfig.ShadowWalker.baseDamageAmplifier +
+                    (shadowLevel - 1) * EnchantmentModuleConfig.ShadowWalker.damageAmplifierPerLevel;
+
+            EnchantmentTracker.applyTimedModifier(attacker, ModAttributes.DAMAGE_AMPLIFIER.get(),
+                    "shadow_walker_damage_flat", "Shadow Walker Damage (Flat)", flatBoost / 100.0,
+                    AttributeModifier.Operation.ADDITION, 1);
+            
+            if (EnchantmentModuleConfig.ShadowWalker.percentDamageAmplifier > 0) {
                 EnchantmentTracker.applyTimedModifier(attacker, ModAttributes.DAMAGE_AMPLIFIER.get(),
-                        "shadow_walker_damage", "Shadow Walker Damage", damageBoost / 100.0,
-                        AttributeModifier.Operation.ADDITION, 1);
+                        "shadow_walker_damage_percent", "Shadow Walker Damage (Percent)", 
+                        EnchantmentModuleConfig.ShadowWalker.percentDamageAmplifier / 100.0,
+                        AttributeModifier.Operation.MULTIPLY_TOTAL, 1);
             }
         }
     }
 
-    private void handleTeammateKillEffects(LivingDeathEvent event) {
-        if (!(event.getEntity() instanceof Mob victim)) return;
-
-        Player directKiller = event.getSource().getEntity() instanceof Player ?
-                (Player) event.getSource().getEntity() : null;
-
-        if (directKiller == null) return;
-
+    private void handleTeammateKillEffects(Player directKiller) {
         Team killerTeam = directKiller.getTeam();
         if (killerTeam == null) return;
 
@@ -136,7 +147,10 @@ public class ShadowWalkerEnchantment extends EventHandlingEnchantment {
 
             Team nearbyTeam = nearbyPlayer.getTeam();
             if (nearbyTeam != null && nearbyTeam.equals(killerTeam)) {
-                handleShadowWalkerTrigger(nearbyPlayer, false);
+                int shadowLevel = getEnchantmentLevelFromCategory(nearbyPlayer, EnchantmentModuleConfig.ShadowWalker.category);
+                if (shadowLevel > 0) {
+                    handleShadowWalkerKill(nearbyPlayer, shadowLevel, false);
+                }
             }
         }
     }

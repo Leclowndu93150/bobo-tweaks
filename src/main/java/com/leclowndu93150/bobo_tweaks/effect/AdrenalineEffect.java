@@ -1,5 +1,6 @@
 package com.leclowndu93150.bobo_tweaks.effect;
 
+import com.leclowndu93150.bobo_tweaks.additional.enchantments.config.EnchantmentModuleConfig;
 import com.leclowndu93150.bobo_tweaks.registry.ModAttributes;
 import dev.shadowsoffire.attributeslib.api.ALObjects;
 import net.minecraft.world.effect.MobEffect;
@@ -24,12 +25,19 @@ public class AdrenalineEffect extends MobEffect {
     public void addAttributeModifiers(LivingEntity entity, AttributeMap attributeMap, int amplifier) {
         super.addAttributeModifiers(entity, attributeMap, amplifier);
         
+        double damageAmpBoost = (EnchantmentModuleConfig.OnARoll.AdrenalineStats.baseDamageAmplifier + 
+                                  EnchantmentModuleConfig.OnARoll.AdrenalineStats.damageAmplifierPerLevel * amplifier) / 100.0;
+        double critDamageBoost = (EnchantmentModuleConfig.OnARoll.AdrenalineStats.baseCritDamage + 
+                                   EnchantmentModuleConfig.OnARoll.AdrenalineStats.critDamagePerLevel * amplifier) / 100.0;
+        double critChanceBoost = (EnchantmentModuleConfig.OnARoll.AdrenalineStats.baseCritChance + 
+                                   EnchantmentModuleConfig.OnARoll.AdrenalineStats.critChancePerLevel * amplifier) / 100.0;
+        
         AttributeInstance damageAmpInstance = entity.getAttribute(ModAttributes.DAMAGE_AMPLIFIER.get());
         if (damageAmpInstance != null) {
             AttributeModifier damageAmpModifier = new AttributeModifier(
                 DAMAGE_AMPLIFIER_UUID,
                 "Adrenaline damage amplifier boost",
-                0.05 * (amplifier + 1),
+                damageAmpBoost,
                 AttributeModifier.Operation.MULTIPLY_TOTAL
             );
             damageAmpInstance.addTransientModifier(damageAmpModifier);
@@ -40,7 +48,7 @@ public class AdrenalineEffect extends MobEffect {
             AttributeModifier critDamageModifier = new AttributeModifier(
                 CRIT_DAMAGE_UUID,
                 "Adrenaline crit damage boost",
-                0.02 * (amplifier + 1),
+                critDamageBoost,
                 AttributeModifier.Operation.MULTIPLY_TOTAL
             );
             critDamageInstance.addTransientModifier(critDamageModifier);
@@ -51,7 +59,7 @@ public class AdrenalineEffect extends MobEffect {
             AttributeModifier critChanceModifier = new AttributeModifier(
                 CRIT_CHANCE_UUID,
                 "Adrenaline crit chance boost",
-                0.03 * (amplifier + 1),
+                critChanceBoost,
                 AttributeModifier.Operation.ADDITION
             );
             critChanceInstance.addTransientModifier(critChanceModifier);

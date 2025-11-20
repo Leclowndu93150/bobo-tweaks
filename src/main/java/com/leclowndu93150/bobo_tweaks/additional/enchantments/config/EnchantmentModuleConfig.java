@@ -153,10 +153,12 @@ public class EnchantmentModuleConfig {
         public static String category = "ARMOR_CHEST";
         public static int maxLevel = 3;
         public static int invisibilityDuration = 60;
+        public static int invisibilityDelayTicks = 1;
         public static int movementSpeedDuration = 60;
         public static double movementSpeedPercent = 30.0;
         public static double baseDamageAmplifier = 20.0;
         public static double damageAmplifierPerLevel = 10.0;
+        public static double percentDamageAmplifier = 0.0;
     }
     
     public static class Initiative {
@@ -248,6 +250,15 @@ public class EnchantmentModuleConfig {
         public static int durationPerLevel = 20;
         public static int baseCooldown = 200;
         public static int cooldownReductionPerLevel = 20;
+        
+        public static class AdrenalineStats {
+            public static double baseDamageAmplifier = 5.0;
+            public static double damageAmplifierPerLevel = 5.0;
+            public static double baseCritDamage = 2.0;
+            public static double critDamagePerLevel = 2.0;
+            public static double baseCritChance = 3.0;
+            public static double critChancePerLevel = 3.0;
+        }
     }
     
     public static class GlassSpirit {
@@ -497,10 +508,12 @@ public class EnchantmentModuleConfig {
             if (shadow.has("category")) ShadowWalker.category = shadow.get("category").getAsString();
             if (shadow.has("max_level")) ShadowWalker.maxLevel = shadow.get("max_level").getAsInt();
             if (shadow.has("invisibility_duration")) ShadowWalker.invisibilityDuration = shadow.get("invisibility_duration").getAsInt();
+            if (shadow.has("invisibility_delay_ticks")) ShadowWalker.invisibilityDelayTicks = shadow.get("invisibility_delay_ticks").getAsInt();
             if (shadow.has("movement_speed_duration")) ShadowWalker.movementSpeedDuration = shadow.get("movement_speed_duration").getAsInt();
             if (shadow.has("movement_speed_percent")) ShadowWalker.movementSpeedPercent = shadow.get("movement_speed_percent").getAsDouble();
             if (shadow.has("base_damage_amplifier")) ShadowWalker.baseDamageAmplifier = shadow.get("base_damage_amplifier").getAsDouble();
             if (shadow.has("damage_amplifier_per_level")) ShadowWalker.damageAmplifierPerLevel = shadow.get("damage_amplifier_per_level").getAsDouble();
+            if (shadow.has("percent_damage_amplifier")) ShadowWalker.percentDamageAmplifier = shadow.get("percent_damage_amplifier").getAsDouble();
         }
     }
     
@@ -612,6 +625,16 @@ public class EnchantmentModuleConfig {
             if (onARoll.has("duration_per_level")) OnARoll.durationPerLevel = onARoll.get("duration_per_level").getAsInt();
             if (onARoll.has("base_cooldown")) OnARoll.baseCooldown = onARoll.get("base_cooldown").getAsInt();
             if (onARoll.has("cooldown_reduction_per_level")) OnARoll.cooldownReductionPerLevel = onARoll.get("cooldown_reduction_per_level").getAsInt();
+            
+            if (onARoll.has("adrenaline_stats")) {
+                JsonObject adrenalineStats = onARoll.getAsJsonObject("adrenaline_stats");
+                if (adrenalineStats.has("base_damage_amplifier")) OnARoll.AdrenalineStats.baseDamageAmplifier = adrenalineStats.get("base_damage_amplifier").getAsDouble();
+                if (adrenalineStats.has("damage_amplifier_per_level")) OnARoll.AdrenalineStats.damageAmplifierPerLevel = adrenalineStats.get("damage_amplifier_per_level").getAsDouble();
+                if (adrenalineStats.has("base_crit_damage")) OnARoll.AdrenalineStats.baseCritDamage = adrenalineStats.get("base_crit_damage").getAsDouble();
+                if (adrenalineStats.has("crit_damage_per_level")) OnARoll.AdrenalineStats.critDamagePerLevel = adrenalineStats.get("crit_damage_per_level").getAsDouble();
+                if (adrenalineStats.has("base_crit_chance")) OnARoll.AdrenalineStats.baseCritChance = adrenalineStats.get("base_crit_chance").getAsDouble();
+                if (adrenalineStats.has("crit_chance_per_level")) OnARoll.AdrenalineStats.critChancePerLevel = adrenalineStats.get("crit_chance_per_level").getAsDouble();
+            }
         }
     }
     
@@ -918,20 +941,24 @@ public class EnchantmentModuleConfig {
     
     private static void saveShadowWalker(JsonObject json) {
         JsonObject shadow = new JsonObject();
-        shadow.addProperty("_description", "Shadow Walker: Grants invisibility and a damage boost after sneaking.");
+        shadow.addProperty("_description", "Shadow Walker: Grants true invisibility and movement speed on kill. Damage boost while invisible.");
         shadow.addProperty("enabled", ShadowWalker.enabled);
         shadow.addProperty("category", ShadowWalker.category);
         shadow.addProperty("max_level", ShadowWalker.maxLevel);
-        shadow.addProperty("_invisibility_duration_description", "Duration of the invisibility in ticks.");
+        shadow.addProperty("_invisibility_duration_description", "Duration of true invisibility in ticks (only on direct kill, not teammate kills).");
         shadow.addProperty("invisibility_duration", ShadowWalker.invisibilityDuration);
-        shadow.addProperty("_movement_speed_duration_description", "Duration of the movement speed boost in ticks.");
+        shadow.addProperty("_invisibility_delay_ticks_description", "Delay before applying true invisibility in ticks (prevents removal on kill hit).");
+        shadow.addProperty("invisibility_delay_ticks", ShadowWalker.invisibilityDelayTicks);
+        shadow.addProperty("_movement_speed_duration_description", "Duration of movement speed boost in ticks (applies to both direct and teammate kills).");
         shadow.addProperty("movement_speed_duration", ShadowWalker.movementSpeedDuration);
-        shadow.addProperty("_movement_speed_percent_description", "Movement speed boost in percentage.");
+        shadow.addProperty("_movement_speed_percent_description", "Movement speed boost percentage.");
         shadow.addProperty("movement_speed_percent", ShadowWalker.movementSpeedPercent);
-        shadow.addProperty("_base_damage_amplifier_description", "Base damage amplifier in percentage.");
+        shadow.addProperty("_base_damage_amplifier_description", "Base flat damage amplifier boost when invisible (not percentage-based).");
         shadow.addProperty("base_damage_amplifier", ShadowWalker.baseDamageAmplifier);
-        shadow.addProperty("_damage_amplifier_per_level_description", "Additional damage amplifier per level in percentage.");
+        shadow.addProperty("_damage_amplifier_per_level_description", "Additional flat damage amplifier per enchantment level when invisible.");
         shadow.addProperty("damage_amplifier_per_level", ShadowWalker.damageAmplifierPerLevel);
+        shadow.addProperty("_percent_damage_amplifier_description", "Percentage damage amplifier boost when invisible (multiply_total operation).");
+        shadow.addProperty("percent_damage_amplifier", ShadowWalker.percentDamageAmplifier);
         json.add("shadow_walker", shadow);
     }
     
@@ -1068,6 +1095,23 @@ public class EnchantmentModuleConfig {
         onARoll.addProperty("duration_per_level", OnARoll.durationPerLevel);
         onARoll.addProperty("base_cooldown", OnARoll.baseCooldown);
         onARoll.addProperty("cooldown_reduction_per_level", OnARoll.cooldownReductionPerLevel);
+        
+        JsonObject adrenalineStats = new JsonObject();
+        adrenalineStats.addProperty("_description", "Stat boosts granted by adrenaline effect (% values). These scale with enchantment level.");
+        adrenalineStats.addProperty("_base_damage_amplifier_description", "Base damage amplifier percentage boost per stack.");
+        adrenalineStats.addProperty("base_damage_amplifier", OnARoll.AdrenalineStats.baseDamageAmplifier);
+        adrenalineStats.addProperty("_damage_amplifier_per_level_description", "Additional damage amplifier percentage per enchantment level.");
+        adrenalineStats.addProperty("damage_amplifier_per_level", OnARoll.AdrenalineStats.damageAmplifierPerLevel);
+        adrenalineStats.addProperty("_base_crit_damage_description", "Base critical damage percentage boost per stack.");
+        adrenalineStats.addProperty("base_crit_damage", OnARoll.AdrenalineStats.baseCritDamage);
+        adrenalineStats.addProperty("_crit_damage_per_level_description", "Additional critical damage percentage per enchantment level.");
+        adrenalineStats.addProperty("crit_damage_per_level", OnARoll.AdrenalineStats.critDamagePerLevel);
+        adrenalineStats.addProperty("_base_crit_chance_description", "Base critical chance percentage boost (flat addition).");
+        adrenalineStats.addProperty("base_crit_chance", OnARoll.AdrenalineStats.baseCritChance);
+        adrenalineStats.addProperty("_crit_chance_per_level_description", "Additional critical chance percentage per enchantment level.");
+        adrenalineStats.addProperty("crit_chance_per_level", OnARoll.AdrenalineStats.critChancePerLevel);
+        onARoll.add("adrenaline_stats", adrenalineStats);
+        
         json.add("on_a_roll", onARoll);
     }
     
