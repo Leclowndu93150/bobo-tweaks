@@ -9,7 +9,7 @@
 out/
 # mpeltonen/sbt-idea plugin
 .idea_modules/
-
+Minecraft-Source-1.20.1
 # JIRA plugin
 atlassian-ide-plugin.xml
 

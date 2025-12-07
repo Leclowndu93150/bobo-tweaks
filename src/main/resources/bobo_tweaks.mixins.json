@@ -9,6 +9,7 @@
     "AnvilMenuMixin",
     "AttributeEventsMixin",
     "BundleItemMixin",
+    "LivingEntityAddEffectMixin",
     "LivingEntityKnockbackMixin",
     "MagicManagerMixin",
     "PlayerMixin",

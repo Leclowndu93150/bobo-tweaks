@@ -4,6 +4,7 @@ import com.leclowndu93150.bobo_tweaks.additional.arrowrebalance.ArrowRebalanceRe
 import com.leclowndu93150.bobo_tweaks.additional.autobow.AutoBowRegistration;
 import com.leclowndu93150.bobo_tweaks.additional.itempreservation.ItemPreservationRegistration;
 import com.leclowndu93150.bobo_tweaks.additional.effectimmunity.EffectImmunityRegistration;
+import com.leclowndu93150.bobo_tweaks.additional.effectamplifiercap.EffectAmplifierCapRegistration;
 import com.leclowndu93150.bobo_tweaks.additional.attackeffects.AttackEffectsRegistration;
 import com.leclowndu93150.bobo_tweaks.additional.exclusiveitems.ExclusiveItemsRegistration;
 import com.leclowndu93150.bobo_tweaks.config.ModConfig;
@@ -53,6 +54,7 @@ public class BoboTweaks {
         AutoBowRegistration.init();
         ItemPreservationRegistration.init();
         EffectImmunityRegistration.init();
+        EffectAmplifierCapRegistration.init();
         AttackEffectsRegistration.init();
         ExclusiveItemsRegistration.init();
         SmithingBlacklistRegistration.init();
